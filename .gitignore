@@ -1,0 +1,8 @@
+*
+!Inc/
+!Src/
+!Src/*
+!Inc/*
+!.gitignore
+!*.ioc
+
