@@ -580,10 +580,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, WDI_Pin|Charger_Safety_Pin|Charge_Enable_Pin|Discharge_Enable_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, WDI_Pin|CHARGE_ENABLE_Pin|SDC_BMS_FAULT_Pin|LPM_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : WDI_Pin Charger_Safety_Pin Charge_Enable_Pin Discharge_Enable_Pin */
-  GPIO_InitStruct.Pin = WDI_Pin|Charger_Safety_Pin|Charge_Enable_Pin|Discharge_Enable_Pin;
+  /*Configure GPIO pins : WDI_Pin CHARGE_ENABLE_Pin SDC_BMS_FAULT_Pin LPM_Pin */
+  GPIO_InitStruct.Pin = WDI_Pin|CHARGE_ENABLE_Pin|SDC_BMS_FAULT_Pin|LPM_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

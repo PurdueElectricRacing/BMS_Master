@@ -92,12 +92,12 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define WDI_Pin GPIO_PIN_0
 #define WDI_GPIO_Port GPIOF
-#define Charger_Safety_Pin GPIO_PIN_1
-#define Charger_Safety_GPIO_Port GPIOF
-#define Charge_Enable_Pin GPIO_PIN_2
-#define Charge_Enable_GPIO_Port GPIOF
-#define Discharge_Enable_Pin GPIO_PIN_3
-#define Discharge_Enable_GPIO_Port GPIOF
+#define CHARGE_ENABLE_Pin GPIO_PIN_2
+#define CHARGE_ENABLE_GPIO_Port GPIOF
+#define SDC_BMS_FAULT_Pin GPIO_PIN_3
+#define SDC_BMS_FAULT_GPIO_Port GPIOF
+#define LPM_Pin GPIO_PIN_4
+#define LPM_GPIO_Port GPIOF
 #define ISENSE_1_Pin GPIO_PIN_1
 #define ISENSE_1_GPIO_Port GPIOA
 #define ISENSE_2_Pin GPIO_PIN_2
