@@ -36,24 +36,25 @@
 *     rx can queue and move on with life.
 *
 ***************************************************************************/
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-  CanRxMsgTypeDef rx;
-  TickType_t temp;
-  CAN_RxHeaderTypeDef header;
-  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
-  rx.DLC = header.DLC;
-  rx.StdId = header.StdId;
-  xQueueSendFromISR(bms.q_rx_can, &rx, 0);
-
-  //master watchdawg task
-  if (xSemaphoreTakeFromISR(wdawg.master_sem, NULL) == pdPASS) {
-    //semaphore successfully taken
-    temp = wdawg.new_msg;
-    wdawg.new_msg = xTaskGetTickCountFromISR();
-    wdawg.last_msg = temp;
-    xSemaphoreGiveFromISR(wdawg.master_sem, NULL); //give the sem back
-  }
-}
+//TODO: figure out what needs to be done here
+//void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
+//  CanRxMsgTypeDef rx;
+//  TickType_t temp;
+//  CAN_RxHeaderTypeDef header;
+//  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+//  rx.DLC = header.DLC;
+//  rx.StdId = header.StdId;
+//  xQueueSendFromISR(bms.q_rx_can, &rx, 0);
+//
+//  //master watchdawg task
+//  if (xSemaphoreTakeFromISR(wdawg.master_sem, NULL) == pdPASS) {
+//    //semaphore successfully taken
+//    temp = wdawg.new_msg;
+//    wdawg.new_msg = xTaskGetTickCountFromISR();
+//    wdawg.last_msg = temp;
+//    xSemaphoreGiveFromISR(wdawg.master_sem, NULL); //give the sem back
+//  }
+//}
 
 /***************************************************************************
 *
@@ -76,27 +77,22 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 *     enter sleep mode
 ***************************************************************************/
 void task_Master_WDawg() {
-  wdawg.master_sem = xSemaphoreCreateBinary();
-  wdawg.last_msg = xTaskGetTickCount();
-  wdawg.new_msg = xTaskGetTickCount();
-  TickType_t time_init = 0;
+  CanTxMsgTypeDef msg;
 
+  TickType_t time_init = 0;
+  uint8_t i = 0;
   xSemaphoreGive(wdawg.master_sem); //allows it to be taken
 
   while (1) {
     time_init = xTaskGetTickCount();
-    if (xSemaphoreTake(wdawg.master_sem, WDAWG_BLOCK) == pdPASS) {
-      //semaphore successfully taken
-      if ((wdawg.new_msg - wdawg.last_msg) > WDAWG_RATE) {
-        //master is not responding go into shutdown
-        bms.connected = 0;
-        if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-          bms.state = SHUTDOWN;
-          xSemaphoreGive(bms.state_sem); //release sem
-        }
-      }
-      xSemaphoreGive(wdawg.master_sem);
-    }
+    i = (i+1) % NUM_SLAVES;
+		msg.IDE = CAN_ID_STD;
+		msg.RTR = CAN_RTR_DATA;
+		msg.DLC = 1;
+		msg.StdId = ID_WDAWG;
+		msg.Data[0] = i;
+
+		xQueueSendToBack(lcd.q_tx_can, &msg, 100);
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
 }

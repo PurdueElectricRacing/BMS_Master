@@ -10,30 +10,21 @@
 
 //Includes
 #include "bms.h"
-#include "stm32l4xx_hal_can.h"
 
 //Constants
-#define SLAVE_ONE 1
-#define SLAVE_TWO 0
 
-//used to set the internal address of can messages so Master knows who is sending
-#ifdef SLAVE_ONE
-#define ID_SLAVE  0x1
-#elif SLAVE_TWO
-#define ID_SLAVE  0x2
-#endif
 //IDs
 #define ID_BMS_MASTER         0x600
 #define ID_BMS_MASTER_CONFIG  0x601
 #define ID_BALANCING_MASTER   0x603
 #define ID_SLAVE_FAULT_CODE   0x621
+#define ID_WDAWG							0x604
 
 
 //rates
 #define CAN_TX_RATE 50 / portTICK_RATE_MS //send at 20Hz
 #define CAN_RX_RATE 50 / portTICK_RATE_MS //send at 20Hz
-#define WDAWG_RATE  5000 / portTICK_RATE_MS //5 second timeout value
-#define WDAWG_BLOCK 10 / portTICK_RATE_MS
+#define WDAWG_RATE  1000 / portTICK_PERIOD_MS //every second check with one slave
 
 //TX RTOS
 #define CAN_TX_STACK_SIZE   128
@@ -109,11 +100,10 @@ typedef struct {
 volatile WatchDawg_t wdawg;
 
 //Functions
-void can_filter_init();
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan);
-void task_txCan();
-void task_Master_WDawg();
-void task_CanProcess();
+void bms_can_filter_init();
+void task_txBmsCan();
+void task_Slave_WDawg();
+void task_BmsCanProcess();
 void send_ack();
 
 
