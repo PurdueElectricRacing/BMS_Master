@@ -55,7 +55,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bms.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -152,7 +152,16 @@ int main(void)
   MX_SPI1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
+  can_filter_init(&hcan1);
+	HAL_CAN_Start(&hcan1);
+	can_filter_init(&hcan2);
+	HAL_CAN_Start(&hcan2);
+	can_filter_init(&hcan3);
+	HAL_CAN_Start(&hcan3);
 
+	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+
+	initRTOSObjects(); //start tasks
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
