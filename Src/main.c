@@ -152,7 +152,7 @@ int main(void)
   MX_SPI1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  bms_can_filter_init(&hcan1);
+  bmscan_filter_init(&hcan1);
 	HAL_CAN_Start(&hcan1);
 	vcan_filter_init(&hcan2);
 	HAL_CAN_Start(&hcan2);

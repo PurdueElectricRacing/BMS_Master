@@ -37,24 +37,24 @@
 *
 ***************************************************************************/
 //TODO: figure out what needs to be done here
-//void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-//  CanRxMsgTypeDef rx;
-//  TickType_t temp;
-//  CAN_RxHeaderTypeDef header;
-//  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
-//  rx.DLC = header.DLC;
-//  rx.StdId = header.StdId;
-//  xQueueSendFromISR(bms.q_rx_can, &rx, 0);
-//
-//  //master watchdawg task
-//  if (xSemaphoreTakeFromISR(wdawg.master_sem, NULL) == pdPASS) {
-//    //semaphore successfully taken
-//    temp = wdawg.new_msg;
-//    wdawg.new_msg = xTaskGetTickCountFromISR();
-//    wdawg.last_msg = temp;
-//    xSemaphoreGiveFromISR(wdawg.master_sem, NULL); //give the sem back
-//  }
-//}
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
+  CanRxMsgTypeDef rx;
+  TickType_t temp;
+  CAN_RxHeaderTypeDef header;
+  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+  rx.DLC = header.DLC;
+  rx.StdId = header.StdId;
+  xQueueSendFromISR(bms.q_rx_bmscan, &rx, 0);
+
+  //master watchdawg task
+  if (xSemaphoreTakeFromISR(wdawg.master_sem, NULL) == pdPASS) {
+    //semaphore successfully taken
+    temp = wdawg.new_msg;
+    wdawg.new_msg = xTaskGetTickCountFromISR();
+    wdawg.last_msg = temp;
+    xSemaphoreGiveFromISR(wdawg.master_sem, NULL); //give the sem back
+  }
+}
 
 /***************************************************************************
 *
@@ -85,14 +85,7 @@ void task_Master_WDawg() {
 
   while (1) {
     time_init = xTaskGetTickCount();
-    i = (i+1) % NUM_SLAVES;
-		msg.IDE = CAN_ID_STD;
-		msg.RTR = CAN_RTR_DATA;
-		msg.DLC = 1;
-		msg.StdId = ID_WDAWG;
-		msg.Data[0] = i;
-
-		xQueueSendToBack(lcd.q_tx_can, &msg, 100);
+    //todo: figure out what to do
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
 }
@@ -117,14 +110,14 @@ void task_Master_WDawg() {
 *     messages to arrive to send them out to the bms master.
 *
 ***************************************************************************/
-void task_txCan() {
+void task_txBmsCan() {
   CanTxMsgTypeDef tx;
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
     //check if this task is triggered
-    if (xQueuePeek(bms.q_tx_can, &tx, TIMEOUT) == pdTRUE) {
-      xQueueReceive(bms.q_tx_can, &tx, TIMEOUT);  //actually take item out of queue
+    if (xQueuePeek(bms.q_tx_bmscan, &tx, TIMEOUT) == pdTRUE) {
+      xQueueReceive(bms.q_tx_bmscan, &tx, TIMEOUT);  //actually take item out of queue
       CAN_TxHeaderTypeDef header;
       header.DLC = tx.DLC;
       header.IDE = tx.IDE;
@@ -133,8 +126,8 @@ void task_txCan() {
       header.TransmitGlobalTime = DISABLE;
       uint32_t mailbox;
       //send the message
-      while (!HAL_CAN_GetTxMailboxesFreeLevel(bms.can)); // while mailboxes not free
-      HAL_CAN_AddTxMessage(bms.can, &header, tx.Data, &mailbox);
+      while (!HAL_CAN_GetTxMailboxesFreeLevel(bms.bms_can)); // while mailboxes not free
+      HAL_CAN_AddTxMessage(bms.bms_can, &header, tx.Data, &mailbox);
     }
     vTaskDelayUntil(&time_init, CAN_TX_RATE);
   }
@@ -159,43 +152,16 @@ void task_txCan() {
 *     Function Description: Processes all of the new messages that have been
 *     received via can.
 ***************************************************************************/
-void task_CanProcess() {
+void task_BmsCanProcess() {
   CanRxMsgTypeDef rx_can;
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
 
-    if (xQueuePeek(bms.q_rx_can, &rx_can, TIMEOUT) == pdTRUE) {
-      xQueueReceive(bms.q_rx_can, &rx_can, TIMEOUT);
+    if (xQueuePeek(bms.q_rx_bmscan, &rx_can, TIMEOUT) == pdTRUE) {
+      xQueueReceive(bms.q_rx_bmscan, &rx_can, TIMEOUT);
 
       switch (rx_can.StdId) {
-        case ID_BMS_MASTER:
-          //check if you need to go to sleep or wake up
-          if (rx_can.Data[0] == 1) {
-            //wakeup message send ack
-            send_ack();
-            bms.connected = 1;
-          } else if (rx_can.Data[0] == 2) {
-            //shutdown message was received send ack and shutdown
-            send_ack();
-            bms.connected = 0;
-            if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-              bms.state = SHUTDOWN;
-              xSemaphoreGive(bms.state_sem); //release sem
-            }
-          }
-          break;
-        case ID_BALANCING_MASTER:
-          //see if this pertains to you and then toggle passive balancing if so
-          if (rx_can.Data[0] == ID_SLAVE) {
-            bms.passive_en = !bms.passive_en;
-            if (bms.passive_en == 0) {
-              //todo: shutdown_passive();
-            } else {
-              //todo: enable_passive();
-            }
-          }
-
       }
     }
 
@@ -225,47 +191,17 @@ void task_CanProcess() {
 *     and FilterMaskIdLow.
 *
 ***************************************************************************/
-void can_filter_init(CAN_HandleTypeDef* hcan) {
+void bmscan_filter_init(CAN_HandleTypeDef* hcan) {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_BMS_MASTER << 5;
-  FilterConf.FilterIdLow =          ID_BMS_MASTER_CONFIG << 5;
-  FilterConf.FilterMaskIdHigh =     0;
-  FilterConf.FilterMaskIdLow =      0;
+  FilterConf.FilterIdHigh =         ID_BMS_MASTER << 5; //1
+  FilterConf.FilterIdLow =          ID_BMS_MASTER_CONFIG << 5; //2
+  FilterConf.FilterMaskIdHigh =     0; //3
+  FilterConf.FilterMaskIdLow =      0; //4
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
   HAL_CAN_ConfigFilter(hcan, &FilterConf);
-}
-
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: can_filter_init
-*
-*     Programmer's Name: Matt Flanagan
-*
-*     Function Return Type: None
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef* hcan        Can Handle
-*
-*      Global Dependents:
-*       1. None
-*
-*     Function Description: Send an acknowledgment to main
-*
-***************************************************************************/
-void send_ack() {
-  CanTxMsgTypeDef msg;
-  msg.IDE = CAN_ID_STD;
-  msg.RTR = CAN_RTR_DATA;
-  msg.DLC = 1;
-  msg.StdId = ID_BMS_MASTER;
-  msg.Data[0] = ID_SLAVE;
-
-  xQueueSendToBack(bms.q_tx_can, &msg, 100);
 }
 

@@ -25,16 +25,17 @@
 #define CAN_TX_RATE 50 / portTICK_RATE_MS //send at 20Hz
 #define CAN_RX_RATE 50 / portTICK_RATE_MS //send at 20Hz
 #define WDAWG_RATE  1000 / portTICK_PERIOD_MS //every second check with one slave
+#define TIMEOUT         5 / portTICK_RATE_MS
 
 //TX RTOS
-#define CAN_TX_STACK_SIZE   128
-#define CAN_TX_Q_SIZE       8
-#define CAN_TX_PRIORITY     1
+#define BMSCAN_TX_STACK_SIZE   128
+#define BMSCAN_TX_Q_SIZE       8
+#define BMSCAN_TX_PRIORITY     1
 
 //RX Process RTOS
-#define CAN_RX_STACK_SIZE   128
-#define CAN_RX_Q_SIZE       8
-#define CAN_RX_PRIORITY     1
+#define BMSCAN_RX_STACK_SIZE   128
+#define BMSCAN_RX_Q_SIZE       8
+#define BMSCAN_RX_PRIORITY     1
 
 //WDawg RTOS
 #define WDAWG_STACK_SIZE    128
@@ -97,7 +98,7 @@ typedef struct {
 } WatchDawg_t;
 
 //Global Variables
-volatile WatchDawg_t wdawg;
+volatile WatchDawg_t wdawg[NUM_SLAVES];
 
 //Functions
 void bms_can_filter_init();

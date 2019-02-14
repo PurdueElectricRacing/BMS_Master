@@ -16,8 +16,18 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "bms_can.h"
 
 #define NUM_SLAVES		2	//how many slaves are hooked up to the system
+
+//RTOS Defines
+#define HEARTBEAT_STACK_SIZE 128
+#define HEARTBEAT_PRIORITY  1
+#define BMS_MAIN_STACK_SIZE 128
+#define BMS_MAIN_PRIORITY   1
+
+#define HEARTBEAT_RATE  750 / portTICK_RATE_MS
+#define BMS_MAIN_RATE		20 / portTICK_RATE_MS
 
 enum bms_master_state {
   INIT        = 0,
@@ -46,17 +56,12 @@ typedef struct {
 
 //Main BMS structure that holds can handles and all of the queues
 typedef struct {
-  CAN_HandleTypeDef* bms_can;
-  CAN_HandleTypeDef* charg_can;
-  CAN_HandleTypeDef* dcan;
   QueueHandle_t     q_rx_bmscan;
   QueueHandle_t     q_tx_bmscan;
   QueueHandle_t     q_rx_dcan;
   QueueHandle_t     q_tx_dcan;
   QueueHandle_t     q_rx_chargcan;
   QueueHandle_t     q_tx_chargcan;
-
-  uint16_t          connected; //used to determine if connected to master
 
   faults_t 					fault;
 
@@ -65,5 +70,27 @@ typedef struct {
   //might not need q to receive since polling TBD
 } bms_t;
 
+typedef struct {
+	ADC_HandleTypeDef* i_adc;
+	CAN_HandleTypeDef* dcan;
+	CAN_HandleTypeDef* chargcan;
+	CAN_HandleTypeDef* bmscan;
+	SD_HandleTypeDef*  hsd1;
+	DMA_HandleTypeDef* hdma_sdmmc1_tx;
+	DMA_HandleTypeDef* hdma_sdmmc1_rx;
+	TIM_HandleTypeDef* tim;
+}periph_t;
+
+volatile bms_t bms;
+periph_t periph;
+
+extern ADC_HandleTypeDef hadc1;
+extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan2;
+extern CAN_HandleTypeDef hcan3;
+extern SD_HandleTypeDef hsd1;
+extern DMA_HandleTypeDef hdma_sdmmc1_tx;
+extern DMA_HandleTypeDef hdma_sdmmc1_rx;
+extern TIM_HandleTypeDef htim1;
 
 #endif /* BMS_H_ */
