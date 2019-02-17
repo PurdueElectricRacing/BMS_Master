@@ -210,7 +210,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     PA11     ------> CAN1_RX
     PA12     ------> CAN1_TX 
     */
-    GPIO_InitStruct.Pin = BMS_CAN_RX_Pin|BMS_CAN_TX_Pin;
+    GPIO_InitStruct.Pin = DCAN_RX_Pin|DCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -250,7 +250,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     PB12     ------> CAN2_RX
     PB13     ------> CAN2_TX 
     */
-    GPIO_InitStruct.Pin = DCAN_RX_Pin|DCAN_TX_Pin;
+    GPIO_InitStruct.Pin = CHARG_RX_Pin|CHARG_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -291,19 +291,19 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan)
     PA8     ------> CAN3_RX
     PB4     ------> CAN3_TX 
     */
-    GPIO_InitStruct.Pin = VCAN_RX_Pin;
+    GPIO_InitStruct.Pin = BMSCAN_RX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
-    HAL_GPIO_Init(VCAN_RX_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(BMSCAN_RX_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = VCAN_TX_Pin;
+    GPIO_InitStruct.Pin = BMSCAN_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF11_CAN3;
-    HAL_GPIO_Init(VCAN_TX_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(BMSCAN_TX_GPIO_Port, &GPIO_InitStruct);
 
     /* CAN3 interrupt Init */
     HAL_NVIC_SetPriority(CAN3_RX0_IRQn, 5, 0);
@@ -339,7 +339,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     PA11     ------> CAN1_RX
     PA12     ------> CAN1_TX 
     */
-    HAL_GPIO_DeInit(GPIOA, BMS_CAN_RX_Pin|BMS_CAN_TX_Pin);
+    HAL_GPIO_DeInit(GPIOA, DCAN_RX_Pin|DCAN_TX_Pin);
 
     /* CAN1 interrupt DeInit */
     HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
@@ -371,7 +371,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     PB12     ------> CAN2_RX
     PB13     ------> CAN2_TX 
     */
-    HAL_GPIO_DeInit(GPIOB, DCAN_RX_Pin|DCAN_TX_Pin);
+    HAL_GPIO_DeInit(GPIOB, CHARG_RX_Pin|CHARG_TX_Pin);
 
     /* CAN2 interrupt DeInit */
     HAL_NVIC_DisableIRQ(CAN2_RX0_IRQn);
@@ -403,9 +403,9 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
     PA8     ------> CAN3_RX
     PB4     ------> CAN3_TX 
     */
-    HAL_GPIO_DeInit(VCAN_RX_GPIO_Port, VCAN_RX_Pin);
+    HAL_GPIO_DeInit(BMSCAN_RX_GPIO_Port, BMSCAN_RX_Pin);
 
-    HAL_GPIO_DeInit(VCAN_TX_GPIO_Port, VCAN_TX_Pin);
+    HAL_GPIO_DeInit(BMSCAN_TX_GPIO_Port, BMSCAN_TX_Pin);
 
     /* CAN3 interrupt DeInit */
     HAL_NVIC_DisableIRQ(CAN3_RX0_IRQn);

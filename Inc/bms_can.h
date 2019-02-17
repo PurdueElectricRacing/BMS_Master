@@ -10,22 +10,30 @@
 
 //Includes
 #include "bms.h"
-
+#include "FreeRTOS.h"
+#include "semphr.h"
 //Constants
 
-//IDs
-#define ID_BMS_MASTER         0x600
+//ID Master -> Slave
+#define ID_BMS_WAKEUP	        0x600
 #define ID_BMS_MASTER_CONFIG  0x601
 #define ID_BALANCING_MASTER   0x603
-#define ID_SLAVE_FAULT_CODE   0x621
 #define ID_WDAWG							0x604
 
+//ID Slave -> Master
+#define ID_SLAVE_ACK			    0x640
+#define ID_SLAVE_FAULT				0x641
+#define ID_SLAVE_VOLT					0x642
+#define ID_SLAVE_TEMP					0x643
 
 //rates
 #define CAN_TX_RATE 50 / portTICK_RATE_MS //send at 20Hz
 #define CAN_RX_RATE 50 / portTICK_RATE_MS //send at 20Hz
 #define WDAWG_RATE  1000 / portTICK_PERIOD_MS //every second check with one slave
+
+//Timeouts
 #define TIMEOUT         5 / portTICK_RATE_MS
+#define WDAWG_TIMEOUT		(NUM_SLAVES * 1000) / portTICK_RATE_MS
 
 //TX RTOS
 #define BMSCAN_TX_STACK_SIZE   128
@@ -98,7 +106,6 @@ typedef struct {
 } WatchDawg_t;
 
 //Global Variables
-volatile WatchDawg_t wdawg[NUM_SLAVES];
 
 //Functions
 void bms_can_filter_init();

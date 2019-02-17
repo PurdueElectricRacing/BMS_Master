@@ -16,6 +16,9 @@
 
 #include "bms_can.h"
 
+//global variables
+volatile WatchDawg_t wdawg[NUM_SLAVES];
+
 /***************************************************************************
 *
 *     Function Information
@@ -36,23 +39,63 @@
 *     rx can queue and move on with life.
 *
 ***************************************************************************/
-//TODO: figure out what needs to be done here
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-  CanRxMsgTypeDef rx;
+void HAL_CAN3_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
+	CanRxMsgTypeDef rx;
   TickType_t temp;
   CAN_RxHeaderTypeDef header;
   HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
   rx.DLC = header.DLC;
   rx.StdId = header.StdId;
-  xQueueSendFromISR(bms.q_rx_bmscan, &rx, 0);
+  xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
 
   //master watchdawg task
-  if (xSemaphoreTakeFromISR(wdawg.master_sem, NULL) == pdPASS) {
+  //first data byte always corresponds to the slave ID
+  if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].master_sem, NULL) == pdPASS) {
     //semaphore successfully taken
-    temp = wdawg.new_msg;
-    wdawg.new_msg = xTaskGetTickCountFromISR();
-    wdawg.last_msg = temp;
-    xSemaphoreGiveFromISR(wdawg.master_sem, NULL); //give the sem back
+    temp = wdawg[rx.Data[0]].new_msg;
+    wdawg[rx.Data[0]].new_msg = xTaskGetTickCountFromISR();
+    wdawg[rx.Data[0]].last_msg = temp;
+    xSemaphoreGiveFromISR(wdawg[rx.Data[0]].master_sem, NULL); //give the sem back
+  }
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: HAL_CAN_RxFifo1MsgPendingCallback
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. CAN_HandleTypeDef *hcan      Can Handle
+*
+*      Global Dependents:
+*       1. None
+*
+*     Function Description: After a message has been received add it to the
+*     rx can queue and move on with life.
+*
+***************************************************************************/
+void HAL_CAN3_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan) {
+	CanRxMsgTypeDef rx;
+  TickType_t temp;
+  CAN_RxHeaderTypeDef header;
+  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+  rx.DLC = header.DLC;
+  rx.StdId = header.StdId;
+  xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
+
+  //master watchdawg task
+  //first data byte always corresponds to the slave ID
+  if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].master_sem, NULL) == pdPASS) {
+    //semaphore successfully taken
+    temp = wdawg[rx.Data[0]].new_msg;
+    wdawg[rx.Data[0]].new_msg = xTaskGetTickCountFromISR();
+    wdawg[rx.Data[0]].last_msg = temp;
+    xSemaphoreGiveFromISR(wdawg[rx.Data[0]].master_sem, NULL); //give the sem back
   }
 }
 
@@ -76,16 +119,36 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 *     comms, if it doesn't receive a message from Master within x time then
 *     enter sleep mode
 ***************************************************************************/
-void task_Master_WDawg() {
-  CanTxMsgTypeDef msg;
-
+void task_Slave_WDawg() {
   TickType_t time_init = 0;
   uint8_t i = 0;
-  xSemaphoreGive(wdawg.master_sem); //allows it to be taken
+  //init watch dawg
+  for (i = 0; i < NUM_SLAVES; i ++) {
+    xSemaphoreGive(wdawg[i].master_sem); //allows it to be taken
+    wdawg[i].last_msg = 0;
+    wdawg[i].new_msg = 0;
+  }
+
+  i = 0;
 
   while (1) {
     time_init = xTaskGetTickCount();
-    //todo: figure out what to do
+    i =  (i + 1) % NUM_SLAVES;
+    if (xSemaphoreTake(wdawg[i].master_sem, TIMEOUT) == pdPASS) {
+    	//check if past the timeout
+  		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+				if (wdawg[i].new_msg - wdawg[i].last_msg > WDAWG_TIMEOUT) {
+				//this slave is now not detected
+					bms.fault.slave[i].connected = FAULTED;
+				} else {
+					bms.fault.slave[i].connected = NORMAL;
+				}
+				xSemaphoreGive(bms.fault.error_sem);
+  		}
+    	xSemaphoreGive(wdawg[i].master_sem);
+    } else {
+    	//semaphore not acquired
+    }
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
 }
@@ -126,8 +189,8 @@ void task_txBmsCan() {
       header.TransmitGlobalTime = DISABLE;
       uint32_t mailbox;
       //send the message
-      while (!HAL_CAN_GetTxMailboxesFreeLevel(bms.bms_can)); // while mailboxes not free
-      HAL_CAN_AddTxMessage(bms.bms_can, &header, tx.Data, &mailbox);
+      while (!HAL_CAN_GetTxMailboxesFreeLevel(periph.bmscan)); // while mailboxes not free
+      HAL_CAN_AddTxMessage(periph.bmscan, &header, tx.Data, &mailbox);
     }
     vTaskDelayUntil(&time_init, CAN_TX_RATE);
   }
@@ -162,6 +225,18 @@ void task_BmsCanProcess() {
       xQueueReceive(bms.q_rx_bmscan, &rx_can, TIMEOUT);
 
       switch (rx_can.StdId) {
+      case ID_SLAVE_ACK:
+      	break;
+      case ID_SLAVE_FAULT:
+      	break;
+      case ID_SLAVE_TEMP:
+      	break;
+      case ID_SLAVE_VOLT:
+
+      	break;
+      default:
+      	//invalid can message TODO: handle this
+      	break;
       }
     }
 
@@ -191,15 +266,16 @@ void task_BmsCanProcess() {
 *     and FilterMaskIdLow.
 *
 ***************************************************************************/
-void bmscan_filter_init(CAN_HandleTypeDef* hcan) {
+void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
+	//filter 0
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_BMS_MASTER << 5; //1
-  FilterConf.FilterIdLow =          ID_BMS_MASTER_CONFIG << 5; //2
-  FilterConf.FilterMaskIdHigh =     0; //3
-  FilterConf.FilterMaskIdLow =      0; //4
+  FilterConf.FilterIdHigh =         ID_SLAVE_ACK << 5;
+  FilterConf.FilterIdLow =          ID_SLAVE_FAULT << 5;
+  FilterConf.FilterMaskIdHigh =     ID_SLAVE_TEMP << 5;
+  FilterConf.FilterMaskIdLow =      ID_SLAVE_VOLT << 5;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
-  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
+  FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
   HAL_CAN_ConfigFilter(hcan, &FilterConf);

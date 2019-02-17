@@ -62,7 +62,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bms_can.h"
+#include "dcan.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -104,20 +105,28 @@ void Error_Handler(void);
 #define ISENSE_2_GPIO_Port GPIOA
 #define Fan_PWM_Pin GPIO_PIN_9
 #define Fan_PWM_GPIO_Port GPIOE
-#define DCAN_RX_Pin GPIO_PIN_12
-#define DCAN_RX_GPIO_Port GPIOB
-#define DCAN_TX_Pin GPIO_PIN_13
-#define DCAN_TX_GPIO_Port GPIOB
-#define VCAN_RX_Pin GPIO_PIN_8
-#define VCAN_RX_GPIO_Port GPIOA
-#define BMS_CAN_RX_Pin GPIO_PIN_11
-#define BMS_CAN_RX_GPIO_Port GPIOA
-#define BMS_CAN_TX_Pin GPIO_PIN_12
-#define BMS_CAN_TX_GPIO_Port GPIOA
+#define BLUE_LED_Pin GPIO_PIN_10
+#define BLUE_LED_GPIO_Port GPIOE
+#define GREEN_LED_Pin GPIO_PIN_11
+#define GREEN_LED_GPIO_Port GPIOE
+#define ORANGE_LED_Pin GPIO_PIN_12
+#define ORANGE_LED_GPIO_Port GPIOE
+#define RED_LED_Pin GPIO_PIN_13
+#define RED_LED_GPIO_Port GPIOE
+#define CHARG_RX_Pin GPIO_PIN_12
+#define CHARG_RX_GPIO_Port GPIOB
+#define CHARG_TX_Pin GPIO_PIN_13
+#define CHARG_TX_GPIO_Port GPIOB
+#define BMSCAN_RX_Pin GPIO_PIN_8
+#define BMSCAN_RX_GPIO_Port GPIOA
+#define DCAN_RX_Pin GPIO_PIN_11
+#define DCAN_RX_GPIO_Port GPIOA
+#define DCAN_TX_Pin GPIO_PIN_12
+#define DCAN_TX_GPIO_Port GPIOA
 #define DETECT_SDIO_Pin GPIO_PIN_0
 #define DETECT_SDIO_GPIO_Port GPIOD
-#define VCAN_TX_Pin GPIO_PIN_4
-#define VCAN_TX_GPIO_Port GPIOB
+#define BMSCAN_TX_Pin GPIO_PIN_4
+#define BMSCAN_TX_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

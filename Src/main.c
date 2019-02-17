@@ -152,15 +152,18 @@ int main(void)
   MX_SPI1_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-  bmscan_filter_init(&hcan1);
-	HAL_CAN_Start(&hcan1);
-	vcan_filter_init(&hcan2);
-	HAL_CAN_Start(&hcan2);
-	dcan_filter_init(&hcan3);
+  bms_can_filter_init(&hcan3);
 	HAL_CAN_Start(&hcan3);
+	//vcan_filter_init(&hcan2);
+	HAL_CAN_Start(&hcan2);
+	dcan_filter_init(&hcan1);
+	HAL_CAN_Start(&hcan1);
 
-	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
-
+	HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING); //master
+	HAL_CAN_ActivateNotification(&hcan2, CAN_IT_RX_FIFO1_MSG_PENDING); //slave shares fifo
+	//BMS_can is a standalone master so has access to both fifo's
+	HAL_CAN_ActivateNotification(&hcan3, CAN_IT_RX_FIFO0_MSG_PENDING);
+	HAL_CAN_ActivateNotification(&hcan3, CAN_IT_RX_FIFO1_MSG_PENDING);
 	initRTOSObjects(); //start tasks
   /* USER CODE END 2 */
 
@@ -357,7 +360,7 @@ static void MX_CAN2_Init(void)
 
   /* USER CODE END CAN2_Init 1 */
   hcan2.Instance = CAN2;
-  hcan2.Init.Prescaler = 2;
+  hcan2.Init.Prescaler = 4;
   hcan2.Init.Mode = CAN_MODE_NORMAL;
   hcan2.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan2.Init.TimeSeg1 = CAN_BS1_8TQ;
@@ -591,12 +594,22 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOF, WDI_Pin|CHARGE_ENABLE_Pin|SDC_BMS_FAULT_Pin|LPM_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, BLUE_LED_Pin|GREEN_LED_Pin|ORANGE_LED_Pin|RED_LED_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pins : WDI_Pin CHARGE_ENABLE_Pin SDC_BMS_FAULT_Pin LPM_Pin */
   GPIO_InitStruct.Pin = WDI_Pin|CHARGE_ENABLE_Pin|SDC_BMS_FAULT_Pin|LPM_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : BLUE_LED_Pin GREEN_LED_Pin ORANGE_LED_Pin RED_LED_Pin */
+  GPIO_InitStruct.Pin = BLUE_LED_Pin|GREEN_LED_Pin|ORANGE_LED_Pin|RED_LED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : DETECT_SDIO_Pin */
   GPIO_InitStruct.Pin = DETECT_SDIO_Pin;

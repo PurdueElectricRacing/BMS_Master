@@ -17,8 +17,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "bms_can.h"
+#include "dcan.h"
 
 #define NUM_SLAVES		2	//how many slaves are hooked up to the system
+#define NUM_VTAPS			6 //number of voltage taps per module
+#define NUM_TEMP			2	//number of thermistors per module
+
+//Delays
+#define DELAY_SLAVE_CON	500 / portTICK_RATE_MS //time between checking if all slaves are connected
 
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE 128
@@ -38,18 +44,49 @@ enum bms_master_state {
   SHUTDOWN    = 5
 };
 
+enum power_state {
+	POWER_ON = 0,
+	POWER_OFF = 1
+}powercmd_t;
+
+enum flag_state {
+	ASSERTED = 1,
+	DEASSERTED = 0
+}flag_t;
+
+enum fault_state {
+	FAULTED = 0,
+	NORMAL = 1
+}fault_t;
+
+enum success_state {
+	SUCCESSFUL = 0,
+	FAILURE = 1
+}success_t;
+
 typedef struct {
-	uint8_t connected; //is it communicating over can?
-	uint8_t temp_sens; //is slavex connected to temp sens
-	uint8_t volt_sens; //is slavex connected to volt sens
+	SemaphoreHandle_t sem;
+	uint16_t data[NUM_SLAVES][NUM_VTAPS];
+}vtap_t;
+
+typedef struct {
+	SemaphoreHandle_t sem;
+	uint16_t data[NUM_SLAVES][NUM_VTAPS];
+}temp_t;
+
+typedef struct {
+	fault_t connected; //is it communicating over can?
+	fault_t temp_sens; //is slavex connected to temp sens
+	fault_t volt_sens; //is slavex connected to volt sens
 }slave_faults;
 
 typedef struct {
-	uint8_t charg_en;			//is charging enabled
-	uint8_t discharg_en;	//is discharge enabled
-	uint8_t overvolt;			//was there an over volt
-	uint8_t undervolt;		//was there an under volt
-	uint8_t overtemp;			//are any cells over temp?
+	flag_t clear;				//clear all current faults
+	fault_t charg_en;			//is charging enabled
+	fault_t discharg_en;	//is discharge enabled
+	fault_t overvolt;			//was there an over volt
+	fault_t undervolt;		//was there an under volt
+	fault_t overtemp;			//are any cells over temp?
 	slave_faults slave[NUM_SLAVES];
 	SemaphoreHandle_t error_sem;
 }faults_t;
@@ -64,6 +101,9 @@ typedef struct {
   QueueHandle_t     q_tx_chargcan;
 
   faults_t 					fault;
+
+  vtap_t						vtaps; //2d array holding all voltage values
+  temp_t						temp;	//2d array holding all temperature values
 
   SemaphoreHandle_t state_sem;
   enum bms_master_state state;
@@ -88,9 +128,17 @@ extern ADC_HandleTypeDef hadc1;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan2;
 extern CAN_HandleTypeDef hcan3;
-extern SD_HandleTypeDef hsd1;
+extern SD_HandleTypeDef  hsd1;
 extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
 extern TIM_HandleTypeDef htim1;
+
+void task_bms_main();
+void initBMSobject();
+void initRTOSObjects();
+void task_heartbeat();
+success_t power_cmd_slaves(powercmd_t poweron);
+success_t slaves_not_connected();
+
 
 #endif /* BMS_H_ */
