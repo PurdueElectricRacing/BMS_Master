@@ -98,6 +98,7 @@ void initBMSobject() {
   bms.fault.discharg_en = NORMAL;
   bms.fault.error_sem = xSemaphoreCreateBinary();
   bms.fault.overtemp = NORMAL;
+  bms.fault.undertemp = NORMAL;
   bms.fault.overvolt = NORMAL;
   bms.fault.undervolt = NORMAL;
 
@@ -185,6 +186,7 @@ void task_bms_main() {
 		      	break;
 		      case NORMAL_OP:
 		      	//TODO: start normal op tasks (get handles to all)
+
 		        //TODO: read from all of the sensors
 		        //TODO: send data to master
 		        //TODO: manage passive balancing if necessary
@@ -192,7 +194,7 @@ void task_bms_main() {
 		      case ERROR_BMS:
 		      	//TODO: kill all non critical tasks
 		        //TODO: handle error just send error code to the DCAN (let that hoe deal with it)
-		        //TODO: send_error();
+		        send_faults();
 		        if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
 		          bms.state = SHUTDOWN;
 		          xSemaphoreGive(bms.state_sem); //release sem
@@ -236,7 +238,7 @@ void task_bms_main() {
 *
 *     Function Information
 *
-*     Name of Function: wakeup_slaves
+*     Name of Function: power_cmd_slaves
 *
 *     Programmer's Name: Matt Flanagan
 *
@@ -319,6 +321,7 @@ success_t clear_faults() {
 	bms.fault.charg_en = NORMAL;
 	bms.fault.discharg_en = NORMAL;
 	bms.fault.overtemp = NORMAL;
+	bms.fault.undertemp = NORMAL;
 	bms.fault.overvolt = NORMAL;
 	bms.fault.undervolt = NORMAL;
 
@@ -331,6 +334,57 @@ success_t clear_faults() {
 	return SUCCESSFUL;
 }
 
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: wakeup_slaves
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: Success status
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1.
+*
+*      Global Dependents:
+*       1. q_tx_bmscan
+*
+*     Function Description: sends fault code to the GUI see CAN msg docs for
+*     more info on what each bit is representing
+***************************************************************************/
+success_t send_faults() {
+	CanTxMsgTypeDef msg;
+	uint8_t i = 0;
+	msg.IDE = CAN_ID_STD;
+	msg.RTR = CAN_RTR_DATA;
+	msg.DLC = NUM_SLAVES + 1; //one for the macro faults
+	msg.StdId = ID_GUI_ERROR_MSG;
+
+	//macro faults
+	msg.Data[0] = bitwise_or(FAULT_CHARGE_EN_SHIFT, FAULT_CHARGE_EN_MASK, bms.fault.charg_en);
+	msg.Data[0] |= bitwise_or(FAULT_DISCHARGE_EN_SHIFT, FAULT_DISCHARGE_EN_MASK, bms.fault.discharg_en);
+	msg.Data[0] |= bitwise_or(FAULT_OVERTEMP_SHIFT, FAULT_OVERTEMP_MASK, bms.fault.overtemp);
+	msg.Data[0] |= bitwise_or(FAULT_OVERVOLT_SHIFT, FAULT_OVERVOLT_MASK, bms.fault.overvolt);
+	msg.Data[0] |= bitwise_or(FAULT_UNDERVOLT_SHIFT, FAULT_UNDERVOLT_MASK, bms.fault.undervolt);
+	msg.Data[0] |= bitwise_or(FAULT_UNDERTEMP_SHIFT, FAULT_UNDERTEMP_MASK, bms.fault.undertemp);
+
+	//module specific faults
+	for (i = 0; i < NUM_SLAVES; i++) {
+		//low module
+		msg.Data[i] = bitwise_or(FAULT_MODL_CON_SHIFT, FAULT_MODL_CON_MASK, bms.fault.slave[i].connected);
+		msg.Data[i] |= bitwise_or(FAULT_MODL_TEMP_SHIFT, FAULT_MODL_TEMP_MASK, bms.fault.slave[i].temp_sens);
+		msg.Data[i] |= bitwise_or(FAULT_MODL_VOLT_SHIFT, FAULT_MODL_VOLT_MASK, bms.fault.slave[i].volt_sens);
+
+		//high module
+		msg.Data[i] |= bitwise_or(FAULT_MODH_CON_SHIFT, FAULT_MODH_CON_MASK, bms.fault.slave[i].connected);
+		msg.Data[i] |= bitwise_or(FAULT_MODH_TEMP_SHIFT, FAULT_MODH_TEMP_MASK, bms.fault.slave[i].temp_sens);
+		msg.Data[i] |= bitwise_or(FAULT_MODH_VOLT_SHIFT, FAULT_MODH_VOLT_MASK, bms.fault.slave[i].volt_sens);
+	}
+
+	xQueueSendToBack(bms.q_tx_dcan, &msg, 100);
+	return SUCCESSFUL;
+}
 
 
 

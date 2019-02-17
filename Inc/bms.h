@@ -35,6 +35,38 @@
 #define HEARTBEAT_RATE  750 / portTICK_RATE_MS
 #define BMS_MAIN_RATE		20 / portTICK_RATE_MS
 
+//Fault Masks
+//Byte 0
+#define FAULT_CHARGE_EN_MASK		  0x01
+#define FAULT_DISCHARGE_EN_MASK   0x02
+#define FAULT_OVERVOLT_MASK			  0x04
+#define FAULT_UNDERVOLT_MASK		  0x08
+#define FAULT_OVERTEMP_MASK			  0x10
+#define FAULT_UNDERTEMP_MASK		  0x20
+#define FAULT_CHARGE_EN_SHIFT		  0
+#define FAULT_DISCHARGE_EN_SHIFT  1
+#define FAULT_OVERVOLT_SHIFT		  2
+#define FAULT_UNDERVOLT_SHIFT		  3
+#define FAULT_OVERTEMP_SHIFT		  4
+#define FAULT_UNDERTEMP_SHIFT		  5
+
+//Byte 1 - 7
+#define FAULT_MODL_CON_MASK				0x01
+#define FAULT_MODL_TEMP_MASK			0x02
+#define FAULT_MODL_VOLT_MASK			0x04
+#define FAULT_MODH_CON_MASK				0x10
+#define FAULT_MODH_TEMP_MASK			0x20
+#define FAULT_MODH_VOLT_MASK			0x40
+#define FAULT_MODL_CON_SHIFT			0
+#define FAULT_MODL_TEMP_SHIFT			1
+#define FAULT_MODL_VOLT_SHIFT			2
+#define FAULT_MODH_CON_SHIFT			4
+#define FAULT_MODH_TEMP_SHIFT			5
+#define FAULT_MODH_VOLT_SHIFT			6
+
+//Macros
+#define bitwise_or(shift, mask, logical) (((uint8_t) logical << shift) | mask)
+
 enum bms_master_state {
   INIT        = 0,
 	BMS_CONNECT = 1,
@@ -87,6 +119,7 @@ typedef struct {
 	fault_t overvolt;			//was there an over volt
 	fault_t undervolt;		//was there an under volt
 	fault_t overtemp;			//are any cells over temp?
+	fault_t undertemp;
 	slave_faults slave[NUM_SLAVES];
 	SemaphoreHandle_t error_sem;
 }faults_t;
@@ -139,6 +172,7 @@ void initRTOSObjects();
 void task_heartbeat();
 success_t power_cmd_slaves(powercmd_t poweron);
 success_t slaves_not_connected();
+success_t send_faults();
 
 
 #endif /* BMS_H_ */
