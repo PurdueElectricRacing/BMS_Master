@@ -27,13 +27,18 @@
 #define DELAY_SLAVE_CON	500 / portTICK_RATE_MS //time between checking if all slaves are connected
 
 //RTOS Defines
-#define HEARTBEAT_STACK_SIZE 128
-#define HEARTBEAT_PRIORITY  1
-#define BMS_MAIN_STACK_SIZE 128
-#define BMS_MAIN_PRIORITY   1
+#define HEARTBEAT_STACK_SIZE 				128
+#define HEARTBEAT_PRIORITY  				2
+#define BMS_MAIN_STACK_SIZE				  128
+#define BMS_MAIN_PRIORITY   				3
+#define ERROR_CHECK_STACK_SIZE			128
+#define ERROR_CHECK_RATE_PRIORITY		1
 
-#define HEARTBEAT_RATE  750 / portTICK_RATE_MS
-#define BMS_MAIN_RATE		20 / portTICK_RATE_MS
+#define HEARTBEAT_RATE  		750 / portTICK_RATE_MS
+#define BMS_MAIN_RATE				20 / portTICK_RATE_MS
+#define ERROR_CHECK_RATE		500 / portTICK_RATE_MS
+
+#define POWER_LOSS_PIN 			10
 
 //Fault Masks
 //Byte 0
@@ -166,10 +171,11 @@ extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
 extern TIM_HandleTypeDef htim1;
 
-void task_bms_main();
 void initBMSobject();
 void initRTOSObjects();
 void task_heartbeat();
+void task_error_check();
+void task_bms_main();
 success_t power_cmd_slaves(powercmd_t poweron);
 success_t slaves_not_connected();
 success_t send_faults();

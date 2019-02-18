@@ -99,6 +99,9 @@ void Error_Handler(void);
 #define SDC_BMS_FAULT_GPIO_Port GPIOF
 #define LPM_Pin GPIO_PIN_4
 #define LPM_GPIO_Port GPIOF
+#define POWER_LOSS_Pin GPIO_PIN_10
+#define POWER_LOSS_GPIO_Port GPIOF
+#define POWER_LOSS_EXTI_IRQn EXTI15_10_IRQn
 #define ISENSE_1_Pin GPIO_PIN_1
 #define ISENSE_1_GPIO_Port GPIOA
 #define ISENSE_2_Pin GPIO_PIN_2

@@ -6,6 +6,20 @@
  */
 #include "bms.h"
 
+void HAL_GPIO_EXTI_Callback(uint16_t pin) {
+
+	switch (pin) {
+	case POWER_LOSS_PIN:
+		if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+			bms.state = SHUTDOWN;
+			xSemaphoreGive(bms.state_sem); //release sem
+		}
+		break;
+	default:
+		break;
+	}
+}
+
 /***************************************************************************
 *
 *     Function Information
@@ -32,6 +46,61 @@ void task_heartbeat() {
     time_init = xTaskGetTickCount();
     HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
     vTaskDelayUntil(&time_init, HEARTBEAT_RATE);
+  }
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: task_error_check
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. bms.fault
+*
+*     Function Description: Checks each error case at  ERROR_CHECK_RATE and
+*     will fault the BMS if an error has been detected.
+*
+***************************************************************************/
+void task_error_check() {
+  TickType_t time_init = 0;
+  uint8_t i = 0;
+  fault_t fault = NORMAL;
+  while (1) {
+    time_init = xTaskGetTickCount();
+
+    if (bms.fault.charg_en == FAULTED ||
+    		bms.fault.discharg_en == FAULTED ||
+				bms.fault.overtemp == FAULTED ||
+				bms.fault.undertemp == FAULTED ||
+				bms.fault.overvolt == FAULTED ||
+				bms.fault.undervolt == FAULTED) {
+    	fault = FAULTED;
+    }
+
+		for (i = 0; i < NUM_SLAVES; i++) {
+				if (bms.fault.slave[i].connected == FAULTED ||
+						bms.fault.slave[i].temp_sens == FAULTED ||
+						bms.fault.slave[i].volt_sens == FAULTED) {
+					fault = FAULTED;
+				}
+		}
+
+		if (fault == FAULTED) {
+			if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+				bms.state = ERROR_BMS;
+				xSemaphoreGive(bms.state_sem); //release sem
+			}
+		}
+
+    vTaskDelayUntil(&time_init, ERROR_CHECK_RATE);
   }
 }
 
@@ -186,14 +255,13 @@ void task_bms_main() {
 		      	break;
 		      case NORMAL_OP:
 		      	//TODO: start normal op tasks (get handles to all)
-
 		        //TODO: read from all of the sensors
 		        //TODO: send data to master
 		        //TODO: manage passive balancing if necessary
 		        break;
 		      case ERROR_BMS:
 		      	//TODO: kill all non critical tasks
-		        //TODO: handle error just send error code to the DCAN (let that hoe deal with it)
+		      	HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_SET); //open SDC
 		        send_faults();
 		        if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
 		          bms.state = SHUTDOWN;
