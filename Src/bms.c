@@ -9,7 +9,7 @@
 void HAL_GPIO_EXTI_Callback(uint16_t pin) {
 
 	switch (pin) {
-	case POWER_LOSS_PIN:
+	case POWER_LOSS_PIN: //TODO confirm this is correct
 		if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
 			bms.state = SHUTDOWN;
 			xSemaphoreGive(bms.state_sem); //release sem
@@ -163,6 +163,15 @@ void initBMSobject() {
 	uint8_t i = 0;
 	uint8_t x = 0;
   bms.state_sem = xSemaphoreCreateBinary();
+
+  //TODO read these limits off of the SD Card maybe?
+  bms.params.charg_lim = LIMIT_CHARG;
+  bms.params.discharg_lim = LIMIT_DISCHARG;
+  bms.params.temp_high_lim = LIMIT_TEMP_HIGH;
+  bms.params.temp_low_lim = LIMIT_TEMP_LOW;
+  bms.params.volt_high_lim = LIMIT_VOLT_HIGH;
+  bms.params.volt_low_lim = LIMIT_VOLT_LOW;
+
   bms.fault.charg_en = NORMAL;
   bms.fault.discharg_en = NORMAL;
   bms.fault.error_sem = xSemaphoreCreateBinary();

@@ -103,6 +103,42 @@ void HAL_CAN3_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 *
 *     Function Information
 *
+*     Name of Function: can_filter_init
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. CAN_HandleTypeDef* hcan        Can Handle
+*
+*      Global Dependents:
+*       1. None
+*
+*     Function Description: Sets the can filter to only take Messages from BMS master.
+*     Only uses FIFO0. If more messages need to be read change FilterMaskIdHigh
+*     and FilterMaskIdLow.
+*
+***************************************************************************/
+void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
+	//filter 0
+  CAN_FilterTypeDef FilterConf;
+  FilterConf.FilterIdHigh =         ID_SLAVE_ACK << 5;
+  FilterConf.FilterIdLow =          ID_SLAVE_FAULT << 5;
+  FilterConf.FilterMaskIdHigh =     ID_SLAVE_TEMP << 5;
+  FilterConf.FilterMaskIdLow =      ID_SLAVE_VOLT << 5;
+  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
+  FilterConf.FilterBank = 0;
+  FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
+  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
+  FilterConf.FilterActivation = ENABLE;
+  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
 *     Name of Function: master_watchDawg
 *
 *     Programmer's Name: Matt Flanagan
@@ -217,6 +253,7 @@ void task_txBmsCan() {
 ***************************************************************************/
 void task_BmsCanProcess() {
   CanRxMsgTypeDef rx_can;
+  uint8_t i = 0;
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
@@ -226,13 +263,21 @@ void task_BmsCanProcess() {
 
       switch (rx_can.StdId) {
       case ID_SLAVE_ACK:
+      	//Don't need to do anything Master Watch dawg task takes care of it
       	break;
       case ID_SLAVE_FAULT:
+      	if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+      		//connected is not relevant because Master Watch dawg is looking for that
+					bms.fault.slave[rx_can.Data[0]].volt_sens = (fault_t) bit_extract(FAULT_MODL_VOLT_MASK, FAULT_MODL_VOLT_SHIFT, rx_can.Data[1]);
+					bms.fault.slave[rx_can.Data[0]].temp_sens = (fault_t) bit_extract(FAULT_MODL_TEMP_MASK, FAULT_MODL_TEMP_SHIFT, rx_can.Data[1]);
+					xSemaphoreGive(bms.fault.error_sem);
+      	}
       	break;
       case ID_SLAVE_TEMP:
+      	process_temp(&rx_can);
       	break;
       case ID_SLAVE_VOLT:
-
+      	process_volt(&rx_can);
       	break;
       default:
       	//invalid can message TODO: handle this
@@ -244,40 +289,146 @@ void task_BmsCanProcess() {
   }
 }
 
-
 /***************************************************************************
 *
 *     Function Information
 *
-*     Name of Function: can_filter_init
+*     Name of Function: process_temp
 *
 *     Programmer's Name: Matt Flanagan
 *
 *     Function Return Type: None
 *
 *     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef* hcan        Can Handle
-*
-*      Global Dependents:
 *       1. None
 *
-*     Function Description: Sets the can filter to only take Messages from BMS master.
-*     Only uses FIFO0. If more messages need to be read change FilterMaskIdHigh
-*     and FilterMaskIdLow.
+*      Global Dependents:
+*       1. Bms.temp array
+*       2. bms.fault
 *
+*     Function Description: takes the newest received data and updates the temp
+*     array accordingly and does safety checks accordingly
 ***************************************************************************/
-void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
-	//filter 0
-  CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_SLAVE_ACK << 5;
-  FilterConf.FilterIdLow =          ID_SLAVE_FAULT << 5;
-  FilterConf.FilterMaskIdHigh =     ID_SLAVE_TEMP << 5;
-  FilterConf.FilterMaskIdLow =      ID_SLAVE_VOLT << 5;
-  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
-  FilterConf.FilterBank = 0;
-  FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
-  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
-  FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+success_t process_temp(CanRxMsgTypeDef* rx) {
+	success_t status = SUCCESSFUL;
+	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
+	uint8_t slave = rx->Data[0];
+	fault_t overtemp = NORMAL;
+	fault_t undertemp = NORMAL;
+	flag_t flag = DEASSERTED;
+
+	int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
+	int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
+	int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
+
+	//safety check
+	//overtemp check
+	if (temp1 > bms.params.temp_high_lim ||
+			temp2 > bms.params.temp_high_lim ||
+			temp3 > bms.params.temp_high_lim) {
+		overtemp = FAULTED;
+		flag = ASSERTED;
+	}
+	//undertemp check
+	if (temp1 < bms.params.temp_low_lim ||
+			temp2 < bms.params.temp_low_lim ||
+			temp3 < bms.params.temp_low_lim) {
+		undertemp = FAULTED;
+		flag = ASSERTED;
+	}
+
+	if (flag == ASSERTED) {
+		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+			bms.fault.overtemp = overtemp;
+			bms.fault.undertemp = undertemp;
+			xSemaphoreGive(bms.fault.error_sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	//update the table
+	if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
+		bms.temp.data[slave][loc++] = temp1;
+		bms.temp.data[slave][loc++] = temp2;
+		bms.temp.data[slave][loc] = temp3;
+		xSemaphoreGive(bms.temp.sem);
+	} else {
+		status = FAILURE;
+	}
+
+	return status;
 }
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: process_volt
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. Bms.volt array
+*       2. bms.fault
+*
+*     Function Description: takes the newest received data and updates the volt
+*     array accordingly and does safety checks accordingly
+***************************************************************************/
+success_t process_volt(CanRxMsgTypeDef* rx) {
+	success_t status = SUCCESSFUL;
+	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
+	uint8_t slave = rx->Data[0];
+	fault_t overvolt = NORMAL;
+	fault_t undervolt = NORMAL;
+	flag_t flag = DEASSERTED;
+
+	uint16_t volt1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
+	uint16_t volt2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
+	uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
+
+	//safety check
+	//overvolt check
+	if (volt1 > bms.params.volt_high_lim ||
+			volt2 > bms.params.volt_high_lim ||
+			volt3 > bms.params.volt_high_lim) {
+		overvolt = FAULTED;
+		flag = ASSERTED;
+	}
+	//undervolt check
+	if (volt1 < bms.params.volt_low_lim ||
+			volt2 < bms.params.volt_low_lim ||
+			volt3 < bms.params.volt_low_lim) {
+		undervolt = FAULTED;
+		flag = ASSERTED;
+	}
+
+	if (flag == ASSERTED) {
+		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+			bms.fault.overvolt = overvolt;
+			bms.fault.undervolt = undervolt;
+			xSemaphoreGive(bms.fault.error_sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	//update the table
+	if (xSemaphoreTake(bms.vtaps.sem, TIMEOUT) == pdPASS) {
+		bms.vtaps.data[slave][loc++] = volt1;
+		bms.vtaps.data[slave][loc++] = volt2;
+		bms.vtaps.data[slave][loc] = volt3;
+		xSemaphoreGive(bms.vtaps.sem);
+	} else {
+		status = FAILURE;
+	}
+
+	return status;
+}
+
 

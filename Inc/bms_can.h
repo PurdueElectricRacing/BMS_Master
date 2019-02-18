@@ -49,6 +49,10 @@
 #define WDAWG_STACK_SIZE    128
 #define WDAWG_PRIORITY      1
 
+//Macros
+//used to reduce a byte to a logical value based off a specified location request
+#define bit_extract(mask, shift, byte) (byte & mask) >> shift
+#define byte_combine(msb, lsb) ((msb << 8) | lsb)
 
 //structures
 typedef struct {
@@ -113,6 +117,8 @@ void task_txBmsCan();
 void task_Slave_WDawg();
 void task_BmsCanProcess();
 void send_ack();
+success_t process_temp(CanRxMsgTypeDef* rx);
+success_t process_volt(CanRxMsgTypeDef* rx);
 
 
 #endif /* BMS_CAN_H_ */

@@ -23,6 +23,14 @@
 #define NUM_VTAPS			6 //number of voltage taps per module
 #define NUM_TEMP			2	//number of thermistors per module
 
+//Default Limits (Eventually should move this to the SD card)
+#define LIMIT_TEMP_HIGH		600				//60 degrees C
+#define LIMIT_TEMP_LOW		-200			//-20 degrees C
+#define LIMIT_VOLT_HIGH		42500			//4.25 volts
+#define LIMIT_VOLT_LOW		25000			//2.5 volts
+#define LIMIT_DISCHARG		3000			//300 amps
+#define LIMIT_CHARG				200				//20 amps
+
 //Delays
 #define DELAY_SLAVE_CON	500 / portTICK_RATE_MS //time between checking if all slaves are connected
 
@@ -96,6 +104,9 @@ enum fault_state {
 	NORMAL = 1
 }fault_t;
 
+
+//Note to self @future Matt if you changed this to be normal logic
+//it screws one thing up that is expecting it in the current way
 enum success_state {
 	SUCCESSFUL = 0,
 	FAILURE = 1
@@ -108,7 +119,7 @@ typedef struct {
 
 typedef struct {
 	SemaphoreHandle_t sem;
-	uint16_t data[NUM_SLAVES][NUM_VTAPS];
+	int16_t data[NUM_SLAVES][NUM_TEMP];
 }temp_t;
 
 typedef struct {
@@ -127,7 +138,16 @@ typedef struct {
 	fault_t undertemp;
 	slave_faults slave[NUM_SLAVES];
 	SemaphoreHandle_t error_sem;
-}faults_t;
+}bmsfaults_t;
+
+typedef struct {
+	int16_t temp_high_lim; //temp
+	int16_t temp_low_lim; //temp
+	uint16_t volt_high_lim; //volt
+	uint16_t volt_low_lim; //volt
+	int16_t discharg_lim; //current
+	int16_t charg_lim; 	//current
+}params_t;
 
 //Main BMS structure that holds can handles and all of the queues
 typedef struct {
@@ -138,7 +158,8 @@ typedef struct {
   QueueHandle_t     q_rx_chargcan;
   QueueHandle_t     q_tx_chargcan;
 
-  faults_t 					fault;
+  params_t					params;
+  bmsfaults_t 			fault;
 
   vtap_t						vtaps; //2d array holding all voltage values
   temp_t						temp;	//2d array holding all temperature values
