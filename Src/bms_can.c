@@ -172,14 +172,14 @@ void task_Slave_WDawg() {
     i =  (i + 1) % NUM_SLAVES;
     if (xSemaphoreTake(wdawg[i].master_sem, TIMEOUT) == pdPASS) {
     	//check if past the timeout
-  		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+  		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
 				if (wdawg[i].new_msg - wdawg[i].last_msg > WDAWG_TIMEOUT) {
 				//this slave is now not detected
 					bms.fault.slave[i].connected = FAULTED;
 				} else {
 					bms.fault.slave[i].connected = NORMAL;
 				}
-				xSemaphoreGive(bms.fault.error_sem);
+				xSemaphoreGive(bms.fault.sem);
   		}
     	xSemaphoreGive(wdawg[i].master_sem);
     } else {
@@ -266,11 +266,11 @@ void task_BmsCanProcess() {
       	//Don't need to do anything Master Watch dawg task takes care of it
       	break;
       case ID_SLAVE_FAULT:
-      	if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+      	if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
       		//connected is not relevant because Master Watch dawg is looking for that
 					bms.fault.slave[rx_can.Data[0]].volt_sens = (fault_t) bit_extract(FAULT_MODL_VOLT_MASK, FAULT_MODL_VOLT_SHIFT, rx_can.Data[1]);
 					bms.fault.slave[rx_can.Data[0]].temp_sens = (fault_t) bit_extract(FAULT_MODL_TEMP_MASK, FAULT_MODL_TEMP_SHIFT, rx_can.Data[1]);
-					xSemaphoreGive(bms.fault.error_sem);
+					xSemaphoreGive(bms.fault.sem);
       	}
       	break;
       case ID_SLAVE_TEMP:
@@ -338,10 +338,10 @@ success_t process_temp(CanRxMsgTypeDef* rx) {
 	}
 
 	if (flag == ASSERTED) {
-		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
 			bms.fault.overtemp = overtemp;
 			bms.fault.undertemp = undertemp;
-			xSemaphoreGive(bms.fault.error_sem);
+			xSemaphoreGive(bms.fault.sem);
 		} else {
 			status = FAILURE;
 		}
@@ -409,10 +409,10 @@ success_t process_volt(CanRxMsgTypeDef* rx) {
 	}
 
 	if (flag == ASSERTED) {
-		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
 			bms.fault.overvolt = overvolt;
 			bms.fault.undervolt = undervolt;
-			xSemaphoreGive(bms.fault.error_sem);
+			xSemaphoreGive(bms.fault.sem);
 		} else {
 			status = FAILURE;
 		}
