@@ -171,10 +171,16 @@ void initBMSobject() {
   bms.params.temp_low_lim = LIMIT_TEMP_LOW;
   bms.params.volt_high_lim = LIMIT_VOLT_HIGH;
   bms.params.volt_low_lim = LIMIT_VOLT_LOW;
+  bms.params.ir_msg_en = DEASSERTED;
+  bms.params.ocv_msg_en = DEASSERTED;
+  bms.params.temp_msg_en = DEASSERTED;
+  bms.params.volt_msg_en = DEASSERTED;
+  bms.params.macro_msg_en = ASSERTED;
+  bms.params.sem = xSemaphoreCreateBinary();
 
   bms.fault.charg_en = NORMAL;
   bms.fault.discharg_en = NORMAL;
-  bms.fault.error_sem = xSemaphoreCreateBinary();
+  bms.fault.sem = xSemaphoreCreateBinary();
   bms.fault.overtemp = NORMAL;
   bms.fault.undertemp = NORMAL;
   bms.fault.overvolt = NORMAL;
@@ -198,9 +204,10 @@ void initBMSobject() {
   bms.state = INIT;
 
   xSemaphoreGive(bms.state_sem);
-  xSemaphoreGive(bms.fault.error_sem);
+  xSemaphoreGive(bms.fault.sem);
   xSemaphoreGive(bms.vtaps.sem);
   xSemaphoreGive(bms.temp.sem);
+  xSemaphoreGive(bms.params.sem);
 
   periph.bmscan						= &hcan3;
 	periph.chargcan					= &hcan2;
@@ -265,7 +272,6 @@ void task_bms_main() {
 		      case NORMAL_OP:
 		      	//TODO: start normal op tasks (get handles to all)
 		        //TODO: read from all of the sensors
-		        //TODO: send data to master
 		        //TODO: manage passive balancing if necessary
 		        break;
 		      case ERROR_BMS:
@@ -288,15 +294,17 @@ void task_bms_main() {
 		        break;
 		      case SOFT_RESET:
 		      	if (bms.fault.clear == ASSERTED) {
-		      		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdPASS) {
+		      		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
 		      			clear_faults();
-		      			xSemaphoreGive(bms.fault.error_sem);
+		      			xSemaphoreGive(bms.fault.sem);
 								if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
 									bms.state = INIT;
 									bms.fault.clear = DEASSERTED;
 									xSemaphoreGive(bms.state_sem); //release sem
 								}
 		      		}
+		      	} else {
+		      		vTaskDelay(DELAY_RESET);
 		      	}
 		      	break;
 		      default:
@@ -363,11 +371,11 @@ success_t slaves_not_connected() {
 	uint8_t i = 0;
 	success_t success = SUCCESSFUL;
 	for (i = 0; i < NUM_SLAVES; i++) {
-		if (xSemaphoreTake(bms.fault.error_sem, TIMEOUT) == pdTRUE) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdTRUE) {
 			if(bms.fault.slave[i].connected == FAULTED) {
 				success = FAILURE;
 			}
-			xSemaphoreGive(bms.fault.error_sem);
+			xSemaphoreGive(bms.fault.sem);
 		}
 	}
 
@@ -436,7 +444,7 @@ success_t send_faults() {
 	msg.IDE = CAN_ID_STD;
 	msg.RTR = CAN_RTR_DATA;
 	msg.DLC = NUM_SLAVES + 1; //one for the macro faults
-	msg.StdId = ID_GUI_ERROR_MSG;
+	msg.StdId = ID_MASTER_ERROR_MSG;
 
 	//macro faults
 	msg.Data[0] = bitwise_or(FAULT_CHARGE_EN_SHIFT, FAULT_CHARGE_EN_MASK, bms.fault.charg_en);

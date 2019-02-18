@@ -33,7 +33,7 @@
 
 //Delays
 #define DELAY_SLAVE_CON	500 / portTICK_RATE_MS //time between checking if all slaves are connected
-
+#define DELAY_RESET			500 / portTICK_RATE_MS
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE 				128
 #define HEARTBEAT_PRIORITY  				2
@@ -137,7 +137,7 @@ typedef struct {
 	fault_t overtemp;			//are any cells over temp?
 	fault_t undertemp;
 	slave_faults slave[NUM_SLAVES];
-	SemaphoreHandle_t error_sem;
+	SemaphoreHandle_t sem;
 }bmsfaults_t;
 
 typedef struct {
@@ -147,6 +147,15 @@ typedef struct {
 	uint16_t volt_low_lim; //volt
 	int16_t discharg_lim; //current
 	int16_t charg_lim; 	//current
+
+	//broadcasts
+	flag_t volt_msg_en;
+	flag_t temp_msg_en;
+	flag_t ocv_msg_en;	//open circuit volt
+	flag_t ir_msg_en;	//internal resistance
+	flag_t macro_msg_en;
+
+	SemaphoreHandle_t sem;
 }params_t;
 
 //Main BMS structure that holds can handles and all of the queues
