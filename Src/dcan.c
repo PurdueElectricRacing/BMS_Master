@@ -129,6 +129,9 @@ void task_DcanProcess() {
 				case ID_GUI_PARAM_SET:
 					process_gui_param_set(&rx_can);
 					break;
+				case ID_GUI_PARAM_REQ:
+					process_gui_param_req(&rx_can);
+					break;
 			}
     }
 
@@ -163,31 +166,31 @@ void task_broadcast() {
 		time_init = xTaskGetTickCount();
 		if (bms.params.volt_msg_en == ASSERTED) {
 			if (execute_broadcast(bms.params.volt_msg_rate, i)) {
-				//todo: write this message
+				send_volt_msg();
 			}
 		}
-
+		vTaskDelay(BROADCAST_DELAY);
 		if (bms.params.temp_msg_en == ASSERTED) {
 			if (execute_broadcast(bms.params.temp_msg_rate, i)) {
-				//todo: write this message
+				send_temp_msg();
 			}
 		}
-
+		vTaskDelay(BROADCAST_DELAY);
 		if (bms.params.ocv_msg_en == ASSERTED) {
 			if (execute_broadcast(bms.params.ocv_msg_rate, i)) {
-				//todo: write this message
+				send_ocv_msg();
 			}
 		}
-
+		vTaskDelay(BROADCAST_DELAY);
 		if (bms.params.ir_msg_en == ASSERTED) {
 			if (execute_broadcast(bms.params.ir_msg_rate, i)) {
-				//todo: write this message
+				send_ir_msg();
 			}
 		}
-
+		vTaskDelay(BROADCAST_DELAY);
 		if (bms.params.macro_msg_en == ASSERTED) {
 			if (execute_broadcast(bms.params.macro_msg_rate, i)) {
-				//todo: write this message
+				send_macro_msg();
 			}
 		}
 
@@ -223,7 +226,7 @@ void dcan_filter_init(CAN_HandleTypeDef* hcan) {
   FilterConf.FilterIdHigh =         ID_GUI_CMD << 5; //1
   FilterConf.FilterIdLow =          ID_GUI_BMS_RESET << 5; //2
   FilterConf.FilterMaskIdHigh =     ID_GUI_PARAM_SET << 5; //3
-  FilterConf.FilterMaskIdLow =      0; //4
+  FilterConf.FilterMaskIdLow =      ID_GUI_PARAM_REQ << 5; //4
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -347,6 +350,87 @@ success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
 		status = FAILURE;
 	}
 
+	return status;
+}
+
+success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
+	success_t status = SUCCESSFUL;
+	CanTxMsgTypeDef msg;
+	msg.IDE = CAN_ID_STD;
+	msg.RTR = CAN_RTR_DATA;
+	msg.DLC = PARAM_RES_MSG_LENGTH;
+	msg.StdId = ID_MASTER_PARAM_RES;
+	msg.Data[0] = rx_can->Data[0];
+	switch (rx_can->Data[0]) {
+		case TEMP_HIGH_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.temp_high_lim);
+			msg.Data[2] = extract_LSB(bms.params.temp_high_lim);
+			break;
+		case TEMP_LOW_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.temp_low_lim);
+			msg.Data[2] = extract_LSB(bms.params.temp_low_lim);
+			break;
+		case VOLT_HIGH_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.volt_high_lim);
+			msg.Data[2] = extract_LSB(bms.params.volt_high_lim);
+			break;
+		case VOLT_LOW_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.volt_low_lim);
+			msg.Data[2] = extract_LSB(bms.params.volt_low_lim);
+			break;
+		case DISCHARGE_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.discharg_lim);
+			msg.Data[2] = extract_LSB(bms.params.discharg_lim);
+			break;
+		case CHARGE_LIMIT:
+			msg.Data[1] = extract_MSB(bms.params.charg_lim);
+			msg.Data[2] = extract_LSB(bms.params.charg_lim);
+			break;
+		case VOLT_MSG_RATE:
+			msg.Data[1] = extract_MSB(bms.params.volt_msg_rate);
+			msg.Data[2] = extract_LSB(bms.params.volt_msg_rate);
+			break;
+		case TEMP_MSG_RATE:
+			msg.Data[1] = extract_MSB(bms.params.temp_msg_rate);
+			msg.Data[2] = extract_LSB(bms.params.temp_msg_rate);
+			break;
+		case OCV_MSG_RATE:
+			msg.Data[1] = extract_MSB(bms.params.ocv_msg_rate);
+			msg.Data[2] = extract_LSB(bms.params.ocv_msg_rate);
+			break;
+		case IR_MSG_RATE:
+			msg.Data[1] = extract_MSB(bms.params.ir_msg_rate);
+			msg.Data[2] = extract_LSB(bms.params.ir_msg_rate);
+			break;
+		case MACRO_MSG_RATE:
+			msg.Data[1] = extract_MSB(bms.params.macro_msg_rate);
+			msg.Data[2] = extract_LSB(bms.params.macro_msg_rate);
+			break;
+		case SOC_VALUE:
+			msg.Data[1] = extract_MSB(bms.macros.soc);
+			msg.Data[2] = 0;
+			break;
+		case SOH_VALUE:
+			msg.Data[1] = extract_MSB(bms.macros.soh);
+			msg.Data[2] = 0;
+			break;
+		case PACK_VOLTAGE:
+			msg.Data[1] = extract_MSB(bms.macros.pack_volt);
+			msg.Data[2] = extract_LSB(bms.macros.pack_volt);
+			break;
+		case PACK_CURRENT:
+			msg.Data[1] = extract_MSB(bms.macros.pack_i);
+			msg.Data[2] = extract_LSB(bms.macros.pack_i);
+			break;
+		case HIGH_TEMP:
+			msg.Data[1] = extract_MSB(bms.macros.high_temp);
+			msg.Data[2] = extract_LSB(bms.macros.high_temp);
+			break;
+	}
+
+	if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
+			status = FAILURE;
+	}
 	return status;
 }
 

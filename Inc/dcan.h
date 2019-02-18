@@ -17,6 +17,7 @@
 #define ID_GUI_CMD					0x620
 #define ID_GUI_PARAM_SET		0x621
 #define ID_GUI_BMS_RESET		0x622
+#define ID_GUI_PARAM_REQ		0x623
 
 //Master -> GUI
 #define ID_MASTER_VOLT_MSG			0x605
@@ -27,6 +28,7 @@
 #define ID_MASTER_MACRO_MSG			0x60A // {SOC, Pack Volt, Pack Current, High Temp}
 #define ID_MASTER_SD_READ_MSG		0x60B
 #define ID_MASTER_SD_TOGGLE_MS	0x60C //toggles when msg starts/ends
+#define ID_MASTER_PARAM_RES			0x60D
 
 //Masks
 #define CONFIG_VOLT_MSG_MASK		  0x01
@@ -44,12 +46,15 @@
 #define MACRO_MSG_LENGTH					7
 #define GENERIC_MSG_LENGTH				8
 #define VALUES_PER_MSG						3
+#define PARAM_RES_MSG_LENGTH			3
 
 //rates
 #define DCAN_TX_RATE 		50 / portTICK_RATE_MS //send at 20Hz
 #define DCAN_RX_RATE 		50 / portTICK_RATE_MS //send at 20Hz
 #define BROADCAST_MS		50
 #define BROADCAST_RATE	BROADCAST_MS / portTICK_RATE_MS //fastest broadcast is 20hz
+//used to keep canrxq from overflowing
+#define BROADCAST_DELAY	(BROADCAST_MS / 10) / portTICK_RATE_MS
 
 //Timeouts
 
@@ -96,7 +101,12 @@ enum param_cmd {
 	TEMP_MSG_RATE		= 7,
 	OCV_MSG_RATE		= 8,
 	IR_MSG_RATE			= 9,
-	MACRO_MSG_RATE	= 10
+	MACRO_MSG_RATE	= 10,
+	SOC_VALUE				= 11,
+	SOH_VALUE				= 12,
+	PACK_VOLTAGE		= 13,
+	PACK_CURRENT		= 14,
+	HIGH_TEMP				= 15
 }param_cmd_t;
 
 enum dcan_broadcast {
