@@ -12,7 +12,6 @@
 #include "bms.h"
 
 //Constants
-
 //IDs
 //GUI -> Master
 #define ID_GUI_CMD					0x620
@@ -43,20 +42,30 @@
 
 
 //rates
-#define DCAN_TX_RATE 50 / portTICK_RATE_MS //send at 20Hz
-#define DCAN_RX_RATE 50 / portTICK_RATE_MS //send at 20Hz
+#define DCAN_TX_RATE 		50 / portTICK_RATE_MS //send at 20Hz
+#define DCAN_RX_RATE 		50 / portTICK_RATE_MS //send at 20Hz
+#define BROADCAST_MS		50
+#define BROADCAST_RATE	BROADCAST_MS / portTICK_RATE_MS //fastest broadcast is 20hz
 
 //Timeouts
 
 //TX RTOS
 #define DCAN_TX_STACK_SIZE   128
-#define DCAN_TX_Q_SIZE       8
+#define DCAN_TX_Q_SIZE       20
 #define DCAN_TX_PRIORITY     1
 
 //RX Process RTOS
 #define DCAN_RX_STACK_SIZE   128
 #define DCAN_RX_Q_SIZE       8
 #define DCAN_RX_PRIORITY     1
+
+//Broadcast RTOS
+#define BROADCAST_STACK_SIZE   128
+#define BROADCAST_PRIORITY     1
+
+//Macros
+//if it is time for the said msg to send
+#define execute_broadcast(msg_rate, i) ((msg_rate / BROADCAST_MS) % i == 0)
 
 //structures
 
@@ -74,12 +83,18 @@ enum param_cmd {
 	VOLT_HIGH_LIMIT = 2,
 	VOLT_LOW_LIMIT	= 3,
 	DISCHARGE_LIMIT = 4,
-	CHARGE_LIMIT		= 5
+	CHARGE_LIMIT		= 5,
+	VOLT_MSG_RATE		= 6,
+	TEMP_MSG_RATE		= 7,
+	OCV_MSG_RATE		= 8,
+	IR_MSG_RATE			= 9,
+	MACRO_MSG_RATE	= 10
 }param_cmd_t;
 
 //Functions
 void dcan_filter_init();
 void task_txDcan();
+void task_broadcast();
 void task_DcanProcess();
 success_t process_gui_cmd(CanRxMsgTypeDef* rx_can);
 

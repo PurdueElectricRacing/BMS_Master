@@ -136,6 +136,65 @@ void task_DcanProcess() {
   }
 }
 
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: task_broadcast
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. Can queue and such
+*
+*     Function Description: brodcasts msg's at the defined rate and if they are
+*     enabled
+***************************************************************************/
+void task_broadcast() {
+	TickType_t time_init = 0;
+	uint16_t i = 0;
+	while (1) {
+		time_init = xTaskGetTickCount();
+		if (bms.params.volt_msg_en == ASSERTED) {
+			if (execute_broadcast(bms.params.volt_msg_rate, i)) {
+				//todo: write this message
+			}
+		}
+
+		if (bms.params.temp_msg_en == ASSERTED) {
+			if (execute_broadcast(bms.params.temp_msg_rate, i)) {
+				//todo: write this message
+			}
+		}
+
+		if (bms.params.ocv_msg_en == ASSERTED) {
+			if (execute_broadcast(bms.params.ocv_msg_rate, i)) {
+				//todo: write this message
+			}
+		}
+
+		if (bms.params.ir_msg_en == ASSERTED) {
+			if (execute_broadcast(bms.params.ir_msg_rate, i)) {
+				//todo: write this message
+			}
+		}
+
+		if (bms.params.macro_msg_en == ASSERTED) {
+			if (execute_broadcast(bms.params.macro_msg_rate, i)) {
+				//todo: write this message
+			}
+		}
+
+		i++;
+		vTaskDelayUntil(&time_init, BROADCAST_RATE);
+	}
+}
+
 
 /***************************************************************************
 *
@@ -265,6 +324,21 @@ success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
 				break;
 			case CHARGE_LIMIT:
 				bms.params.charg_lim = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+				break;
+			case VOLT_MSG_RATE:
+				bms.params.volt_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+				break;
+			case TEMP_MSG_RATE:
+				bms.params.temp_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+				break;
+			case OCV_MSG_RATE:
+				bms.params.ocv_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+				break;
+			case IR_MSG_RATE:
+				bms.params.ir_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+				break;
+			case MACRO_MSG_RATE:
+				bms.params.macro_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
 				break;
 		}
 		xSemaphoreGive(bms.params.sem);

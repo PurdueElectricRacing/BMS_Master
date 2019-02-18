@@ -19,9 +19,10 @@
 #include "bms_can.h"
 #include "dcan.h"
 
-#define NUM_SLAVES		2	//how many slaves are hooked up to the system
-#define NUM_VTAPS			6 //number of voltage taps per module
-#define NUM_TEMP			2	//number of thermistors per module
+#define NUM_SLAVES				2	//how many slaves are hooked up to the system
+#define NUM_VTAPS					6 //number of voltage taps per module
+#define NUM_TEMP					2	//number of thermistors per module
+#define NUM_NORMAL_TASKS	1 //number of tasks that aren't normal
 
 //Default Limits (Eventually should move this to the SD card)
 #define LIMIT_TEMP_HIGH		600				//60 degrees C
@@ -155,6 +156,13 @@ typedef struct {
 	flag_t ir_msg_en;	//internal resistance
 	flag_t macro_msg_en;
 
+	//rates can be max BROADCAST_RATE hz and can be any integer multiple of that
+	uint16_t volt_msg_rate;
+	uint16_t temp_msg_rate;
+	uint16_t ocv_msg_rate;	//open circuit volt
+	uint16_t ir_msg_rate;	//internal resistance
+	uint16_t macro_msg_rate;
+
 	SemaphoreHandle_t sem;
 }params_t;
 
@@ -172,6 +180,8 @@ typedef struct {
 
   vtap_t						vtaps; //2d array holding all voltage values
   temp_t						temp;	//2d array holding all temperature values
+
+  TaskHandle_t* normal_op_tasks[NUM_NORMAL_TASKS];
 
   SemaphoreHandle_t state_sem;
   enum bms_master_state state;
@@ -209,6 +219,7 @@ void task_bms_main();
 success_t power_cmd_slaves(powercmd_t poweron);
 success_t slaves_not_connected();
 success_t send_faults();
+void initRTOSNormal();
 
 
 #endif /* BMS_H_ */

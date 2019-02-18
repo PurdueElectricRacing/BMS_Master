@@ -121,7 +121,7 @@ void task_error_check() {
 *       1. bms
 *
 *     Function Description: Initializes required q's and creates the tasks
-*     that freeRTOS will run
+*     that freeRTOS will run. These tasks are critical to BMS functionality
 *
 ***************************************************************************/
 void initRTOSObjects() {
@@ -130,8 +130,6 @@ void initRTOSObjects() {
   bms.q_tx_bmscan = xQueueCreate(BMSCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   bms.q_rx_dcan		= xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   bms.q_tx_dcan		= xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
-  bms.q_rx_dcan		= xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
-	bms.q_tx_dcan		= xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
 
   //start tasks
 	xTaskCreate(task_Slave_WDawg, "Master WDawg", WDAWG_STACK_SIZE, NULL, WDAWG_PRIORITY, NULL);
@@ -139,6 +137,32 @@ void initRTOSObjects() {
   xTaskCreate(task_BmsCanProcess, "BMS Can RX", BMSCAN_RX_STACK_SIZE, NULL, BMSCAN_TX_PRIORITY, NULL);
   xTaskCreate(task_bms_main, "Main Task", BMS_MAIN_STACK_SIZE, NULL, BMS_MAIN_PRIORITY, NULL);
   xTaskCreate(task_heartbeat, "Heartbeat", HEARTBEAT_STACK_SIZE, NULL, HEARTBEAT_PRIORITY, NULL);
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: initRTOSNormal
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. bms
+*
+*     Function Description: Initializes tasks. These are not critical to
+*     functionality and therefore only exist in Normal_Op with the exception
+*     of sd card task since in shutdown mode it needs to finish writing before
+*     dying.
+*
+***************************************************************************/
+void initRTOSNormal() {
+	xTaskCreate()
 }
 
 /***************************************************************************

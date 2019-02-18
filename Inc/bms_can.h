@@ -42,7 +42,7 @@
 
 //RX Process RTOS
 #define BMSCAN_RX_STACK_SIZE   128
-#define BMSCAN_RX_Q_SIZE       8
+#define BMSCAN_RX_Q_SIZE       20
 #define BMSCAN_RX_PRIORITY     1
 
 //WDawg RTOS
