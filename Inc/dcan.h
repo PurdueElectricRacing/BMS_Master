@@ -40,6 +40,10 @@
 #define CONFIG_IR_MSG_SHIFT		  	3
 #define CONFIG_MACRO_MSG_SHIFT	 	4
 
+//can msg
+#define MACRO_MSG_LENGTH					7
+#define GENERIC_MSG_LENGTH				8
+#define VALUES_PER_MSG						3
 
 //rates
 #define DCAN_TX_RATE 		50 / portTICK_RATE_MS //send at 20Hz
@@ -51,7 +55,7 @@
 
 //TX RTOS
 #define DCAN_TX_STACK_SIZE   128
-#define DCAN_TX_Q_SIZE       20
+#define DCAN_TX_Q_SIZE       40
 #define DCAN_TX_PRIORITY     1
 
 //RX Process RTOS
@@ -66,6 +70,10 @@
 //Macros
 //if it is time for the said msg to send
 #define execute_broadcast(msg_rate, i) ((msg_rate / BROADCAST_MS) % i == 0)
+
+//expects a uint16_t type
+#define extract_LSB(value) (value & 0x00FF)
+#define extract_MSB(value) ((value >> 8) & 0x00FF)
 
 //structures
 
@@ -91,11 +99,26 @@ enum param_cmd {
 	MACRO_MSG_RATE	= 10
 }param_cmd_t;
 
+enum dcan_broadcast {
+	VOLT_MSG = 0,
+	TEMP_MSG = 1,
+	OCV_MSG = 2,
+	IR_MSG = 3,
+}dcan_broadcast_t;
+
 //Functions
 void dcan_filter_init();
 void task_txDcan();
 void task_broadcast();
 void task_DcanProcess();
 success_t process_gui_cmd(CanRxMsgTypeDef* rx_can);
+success_t send_volt_msg();
+success_t send_temp_msg();
+success_t send_ocv_msg();
+success_t send_ir_msg();
+success_t send_macro_msg();
+success_t send_generic_msg();
+
+
 
 #endif /* DCAN_H_ */

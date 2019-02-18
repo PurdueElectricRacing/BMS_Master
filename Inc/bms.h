@@ -116,6 +116,8 @@ enum success_state {
 typedef struct {
 	SemaphoreHandle_t sem;
 	uint16_t data[NUM_SLAVES][NUM_VTAPS];
+	uint16_t ocv[NUM_SLAVES][NUM_VTAPS];
+	uint16_t ir[NUM_SLAVES][NUM_VTAPS];
 }vtap_t;
 
 typedef struct {
@@ -166,6 +168,14 @@ typedef struct {
 	SemaphoreHandle_t sem;
 }params_t;
 
+typedef struct {
+	uint8_t soc;				//percent
+	uint8_t soh;				//percent
+	uint16_t pack_volt;	//voltage
+	int16_t pack_i;			//current
+	int16_t high_temp;	//temperature
+}macros_t;
+
 //Main BMS structure that holds can handles and all of the queues
 typedef struct {
   QueueHandle_t     q_rx_bmscan;
@@ -180,6 +190,7 @@ typedef struct {
 
   vtap_t						vtaps; //2d array holding all voltage values
   temp_t						temp;	//2d array holding all temperature values
+  macros_t					macros;
 
   TaskHandle_t* normal_op_tasks[NUM_NORMAL_TASKS];
 
@@ -217,7 +228,7 @@ void task_heartbeat();
 void task_error_check();
 void task_bms_main();
 success_t power_cmd_slaves(powercmd_t poweron);
-success_t slaves_not_connected();
+success_t slaves_connected();
 success_t send_faults();
 void initRTOSNormal();
 

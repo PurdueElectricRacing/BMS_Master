@@ -162,7 +162,8 @@ void initRTOSObjects() {
 *
 ***************************************************************************/
 void initRTOSNormal() {
-	xTaskCreate()
+	uint8_t i = 0;
+	xTaskCreate(task_broadcast, "Broadcasting Info on DCAN", BROADCAST_STACK_SIZE, NULL, BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
 }
 
 /***************************************************************************
@@ -210,6 +211,12 @@ void initBMSobject() {
   bms.fault.overvolt = NORMAL;
   bms.fault.undervolt = NORMAL;
 
+  bms.macros.soc = 0;
+  bms.macros.high_temp = 0;
+  bms.macros.pack_i = 0;
+  bms.macros.pack_volt = 0;
+  bms.macros.soh = 0;
+
   for (i = 0; i < NUM_SLAVES; i++) {
     bms.fault.slave[i].connected = NORMAL;
     bms.fault.slave[i].temp_sens = NORMAL;
@@ -219,6 +226,8 @@ void initBMSobject() {
     //initialize all vtap data
     for (x = 0; x < NUM_VTAPS; x ++) {
     	bms.vtaps.data[i][x] = 0;
+    	bms.vtaps.ocv[i][x] = 0;
+    	bms.vtaps.ir[i][x] = 0;
     }
     for (x= 0; x < NUM_TEMP; x ++) {
     	bms.temp.data[i][x] = 0;
@@ -285,7 +294,7 @@ void task_bms_main() {
 		      	//establish connections with all slaves
 		      	//send wakeup signal and poll until all slaves are connected
 		      	power_cmd_slaves(POWER_ON);
-		      	while (slaves_not_connected()) {
+		      	while (slaves_connected() == FAILURE) {
 		      		vTaskDelay(DELAY_SLAVE_CON);
 		      	}
 		      	if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
@@ -377,7 +386,7 @@ success_t power_cmd_slaves(powercmd_t poweron) {
 *
 *     Function Information
 *
-*     Name of Function: slaves_not_connected
+*     Name of Function: slaves_connected
 *
 *     Programmer's Name: Matt Flanagan
 *
@@ -391,7 +400,7 @@ success_t power_cmd_slaves(powercmd_t poweron) {
 *
 *     Function Description: sends a wakeup message to the slaves
 ***************************************************************************/
-success_t slaves_not_connected() {
+success_t slaves_connected() {
 	uint8_t i = 0;
 	success_t success = SUCCESSFUL;
 	for (i = 0; i < NUM_SLAVES; i++) {
