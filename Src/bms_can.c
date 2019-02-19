@@ -43,14 +43,14 @@ volatile WatchDawg_t wdawg[NUM_SLAVES];
 *
 ***************************************************************************/
 void HAL_CAN3_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-	CanRxMsgTypeDef rx;
+  CanRxMsgTypeDef rx;
   TickType_t temp;
   CAN_RxHeaderTypeDef header;
   HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
   rx.DLC = header.DLC;
   rx.StdId = header.StdId;
   xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
-
+  
   //master watchdawg task
   //first data byte always corresponds to the slave ID
   if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].master_sem, NULL) == pdPASS) {
@@ -83,14 +83,14 @@ void HAL_CAN3_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 *
 ***************************************************************************/
 void HAL_CAN3_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-	CanRxMsgTypeDef rx;
+  CanRxMsgTypeDef rx;
   TickType_t temp;
   CAN_RxHeaderTypeDef header;
   HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
   rx.DLC = header.DLC;
   rx.StdId = header.StdId;
   xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
-
+  
   //master watchdawg task
   //first data byte always corresponds to the slave ID
   if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].master_sem, NULL) == pdPASS) {
@@ -124,7 +124,7 @@ void HAL_CAN3_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* hcan) {
 *
 ***************************************************************************/
 void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
-	//filter 0
+  //filter 0
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_SLAVE_ACK << 5;
   FilterConf.FilterIdLow =          ID_SLAVE_FAULT << 5;
@@ -162,37 +162,37 @@ void task_Slave_WDawg() {
   TickType_t time_init = 0;
   uint8_t i = 0;
   CanTxMsgTypeDef msg;
-	msg.IDE = CAN_ID_STD;
-	msg.RTR = CAN_RTR_DATA;
-	msg.DLC = MACRO_MSG_LENGTH;
-	msg.StdId = ID_WDAWG;
-	msg.Data[0] = 1;
+  msg.IDE = CAN_ID_STD;
+  msg.RTR = CAN_RTR_DATA;
+  msg.DLC = MACRO_MSG_LENGTH;
+  msg.StdId = ID_WDAWG;
+  msg.Data[0] = 1;
   //init watch dawg
   for (i = 0; i < NUM_SLAVES; i ++) {
     xSemaphoreGive(wdawg[i].master_sem); //allows it to be taken
     wdawg[i].last_msg = 0;
     wdawg[i].new_msg = 0;
   }
-
+  
   i = 0;
-
+  
   while (1) {
     time_init = xTaskGetTickCount();
     i =  (i + 1) % NUM_SLAVES;
     if (xSemaphoreTake(wdawg[i].master_sem, TIMEOUT) == pdPASS) {
-    	//check if past the timeout
-  		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-				if (wdawg[i].new_msg - wdawg[i].last_msg > WDAWG_TIMEOUT) {
-				//this slave is now not detected
-					bms.fault.slave[i].connected = FAULTED;
-				} else {
-					bms.fault.slave[i].connected = NORMAL;
-				}
-				xSemaphoreGive(bms.fault.sem);
-  		}
-    	xSemaphoreGive(wdawg[i].master_sem);
+      //check if past the timeout
+      if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+        if (wdawg[i].new_msg - wdawg[i].last_msg > WDAWG_TIMEOUT) {
+          //this slave is now not detected
+          bms.fault.slave[i].connected = FAULTED;
+        } else {
+          bms.fault.slave[i].connected = NORMAL;
+        }
+        xSemaphoreGive(bms.fault.sem);
+      }
+      xSemaphoreGive(wdawg[i].master_sem);
     } else {
-    	//semaphore not acquired
+      //semaphore not acquired
     }
     xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
     vTaskDelayUntil(&time_init, WDAWG_RATE);
@@ -266,34 +266,36 @@ void task_BmsCanProcess() {
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
-
+    
     if (xQueuePeek(bms.q_rx_bmscan, &rx_can, TIMEOUT) == pdTRUE) {
       xQueueReceive(bms.q_rx_bmscan, &rx_can, TIMEOUT);
-
+      
       switch (rx_can.StdId) {
-      case ID_SLAVE_ACK:
-      	//Don't need to do anything Master Watch dawg task takes care of it
-      	break;
-      case ID_SLAVE_FAULT:
-      	if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-      		//connected is not relevant because Master Watch dawg is looking for that
-					bms.fault.slave[rx_can.Data[0]].volt_sens = (fault_t) bit_extract(FAULT_MODL_VOLT_MASK, FAULT_MODL_VOLT_SHIFT, rx_can.Data[1]);
-					bms.fault.slave[rx_can.Data[0]].temp_sens = (fault_t) bit_extract(FAULT_MODL_TEMP_MASK, FAULT_MODL_TEMP_SHIFT, rx_can.Data[1]);
-					xSemaphoreGive(bms.fault.sem);
-      	}
-      	break;
-      case ID_SLAVE_TEMP:
-      	process_temp(&rx_can);
-      	break;
-      case ID_SLAVE_VOLT:
-      	process_volt(&rx_can);
-      	break;
-      default:
-      	//invalid can message TODO: handle this
-      	break;
+        case ID_SLAVE_ACK:
+          //Don't need to do anything Master Watch dawg task takes care of it
+          break;
+        case ID_SLAVE_FAULT:
+          if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+            //connected is not relevant because Master Watch dawg is looking for that
+            bms.fault.slave[rx_can.Data[0]].volt_sens = (fault_t) bit_extract(FAULT_MODL_VOLT_MASK,
+                FAULT_MODL_VOLT_SHIFT, rx_can.Data[1]);
+            bms.fault.slave[rx_can.Data[0]].temp_sens = (fault_t) bit_extract(FAULT_MODL_TEMP_MASK,
+                FAULT_MODL_TEMP_SHIFT, rx_can.Data[1]);
+            xSemaphoreGive(bms.fault.sem);
+          }
+          break;
+        case ID_SLAVE_TEMP:
+          process_temp(&rx_can);
+          break;
+        case ID_SLAVE_VOLT:
+          process_volt(&rx_can);
+          break;
+        default:
+          //invalid can message TODO: handle this
+          break;
       }
     }
-
+    
     vTaskDelayUntil(&time_init, CAN_RX_RATE);
   }
 }
@@ -319,58 +321,58 @@ void task_BmsCanProcess() {
 *     array accordingly and does safety checks accordingly
 ***************************************************************************/
 Success_t process_temp(CanRxMsgTypeDef* rx) {
-	Success_t status = SUCCESSFUL;
-	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
-	uint8_t slave = rx->Data[0];
-	fault_t overtemp = NORMAL;
-	fault_t undertemp = NORMAL;
-	flag_t flag = DEASSERTED;
-
-	int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
-	int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
-	int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
-
-	//safety check
-	//overtemp check
-	if (temp1 > bms.params.temp_high_lim ||
-			temp2 > bms.params.temp_high_lim ||
-			temp3 > bms.params.temp_high_lim) {
-		overtemp = FAULTED;
-		flag = ASSERTED;
-	}
-	//undertemp check
-	if (temp1 < bms.params.temp_low_lim ||
-			temp2 < bms.params.temp_low_lim ||
-			temp3 < bms.params.temp_low_lim) {
-		undertemp = FAULTED;
-		flag = ASSERTED;
-	}
-
-	if (flag == ASSERTED) {
-		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-			bms.fault.overtemp = overtemp;
-			bms.fault.undertemp = undertemp;
-			xSemaphoreGive(bms.fault.sem);
-		} else {
-			status = FAILURE;
-		}
-	}
-
-	//update the table
-	if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
-		bms.temp.data[slave][loc++] = temp1;
-		bms.temp.data[slave][loc++] = temp2;
-		bms.temp.data[slave][loc] = temp3;
-
-		if (bms.macros.high_temp < max(max(temp1, temp2), temp3)) {
-			bms.macros.high_temp = max(max(temp1, temp2), temp3);
-		}
-		xSemaphoreGive(bms.temp.sem);
-	} else {
-		status = FAILURE;
-	}
-
-	return status;
+  Success_t status = SUCCESSFUL;
+  uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
+  uint8_t slave = rx->Data[0];
+  fault_t overtemp = NORMAL;
+  fault_t undertemp = NORMAL;
+  flag_t flag = DEASSERTED;
+  
+  int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
+  int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
+  int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
+  
+  //safety check
+  //overtemp check
+  if (temp1 > bms.params.temp_high_lim ||
+      temp2 > bms.params.temp_high_lim ||
+      temp3 > bms.params.temp_high_lim) {
+    overtemp = FAULTED;
+    flag = ASSERTED;
+  }
+  //undertemp check
+  if (temp1 < bms.params.temp_low_lim ||
+      temp2 < bms.params.temp_low_lim ||
+      temp3 < bms.params.temp_low_lim) {
+    undertemp = FAULTED;
+    flag = ASSERTED;
+  }
+  
+  if (flag == ASSERTED) {
+    if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+      bms.fault.overtemp = overtemp;
+      bms.fault.undertemp = undertemp;
+      xSemaphoreGive(bms.fault.sem);
+    } else {
+      status = FAILURE;
+    }
+  }
+  
+  //update the table
+  if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
+    bms.temp.data[slave][loc++] = temp1;
+    bms.temp.data[slave][loc++] = temp2;
+    bms.temp.data[slave][loc] = temp3;
+    
+    if (bms.macros.high_temp < max(max(temp1, temp2), temp3)) {
+      bms.macros.high_temp = max(max(temp1, temp2), temp3);
+    }
+    xSemaphoreGive(bms.temp.sem);
+  } else {
+    status = FAILURE;
+  }
+  
+  return status;
 }
 
 /***************************************************************************
@@ -394,54 +396,54 @@ Success_t process_temp(CanRxMsgTypeDef* rx) {
 *     array accordingly and does safety checks accordingly
 ***************************************************************************/
 Success_t process_volt(CanRxMsgTypeDef* rx) {
-	Success_t status = SUCCESSFUL;
-	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
-	uint8_t slave = rx->Data[0];
-	fault_t overvolt = NORMAL;
-	fault_t undervolt = NORMAL;
-	flag_t flag = DEASSERTED;
-
-	uint16_t volt1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
-	uint16_t volt2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
-	uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
-
-	//safety check
-	//overvolt check
-	if (volt1 > bms.params.volt_high_lim ||
-			volt2 > bms.params.volt_high_lim ||
-			volt3 > bms.params.volt_high_lim) {
-		overvolt = FAULTED;
-		flag = ASSERTED;
-	}
-	//undervolt check
-	if (volt1 < bms.params.volt_low_lim ||
-			volt2 < bms.params.volt_low_lim ||
-			volt3 < bms.params.volt_low_lim) {
-		undervolt = FAULTED;
-		flag = ASSERTED;
-	}
-
-	if (flag == ASSERTED) {
-		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-			bms.fault.overvolt = overvolt;
-			bms.fault.undervolt = undervolt;
-			xSemaphoreGive(bms.fault.sem);
-		} else {
-			status = FAILURE;
-		}
-	}
-
-	//update the table
-	if (xSemaphoreTake(bms.vtaps.sem, TIMEOUT) == pdPASS) {
-		bms.vtaps.data[slave][loc++] = volt1;
-		bms.vtaps.data[slave][loc++] = volt2;
-		bms.vtaps.data[slave][loc] = volt3;
-		xSemaphoreGive(bms.vtaps.sem);
-	} else {
-		status = FAILURE;
-	}
-
-	return status;
+  Success_t status = SUCCESSFUL;
+  uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
+  uint8_t slave = rx->Data[0];
+  fault_t overvolt = NORMAL;
+  fault_t undervolt = NORMAL;
+  flag_t flag = DEASSERTED;
+  
+  uint16_t volt1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
+  uint16_t volt2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
+  uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
+  
+  //safety check
+  //overvolt check
+  if (volt1 > bms.params.volt_high_lim ||
+      volt2 > bms.params.volt_high_lim ||
+      volt3 > bms.params.volt_high_lim) {
+    overvolt = FAULTED;
+    flag = ASSERTED;
+  }
+  //undervolt check
+  if (volt1 < bms.params.volt_low_lim ||
+      volt2 < bms.params.volt_low_lim ||
+      volt3 < bms.params.volt_low_lim) {
+    undervolt = FAULTED;
+    flag = ASSERTED;
+  }
+  
+  if (flag == ASSERTED) {
+    if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+      bms.fault.overvolt = overvolt;
+      bms.fault.undervolt = undervolt;
+      xSemaphoreGive(bms.fault.sem);
+    } else {
+      status = FAILURE;
+    }
+  }
+  
+  //update the table
+  if (xSemaphoreTake(bms.vtaps.sem, TIMEOUT) == pdPASS) {
+    bms.vtaps.data[slave][loc++] = volt1;
+    bms.vtaps.data[slave][loc++] = volt2;
+    bms.vtaps.data[slave][loc] = volt3;
+    xSemaphoreGive(bms.vtaps.sem);
+  } else {
+    status = FAILURE;
+  }
+  
+  return status;
 }
 
 
