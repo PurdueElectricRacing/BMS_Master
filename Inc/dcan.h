@@ -106,7 +106,8 @@ typedef enum param_cmd {
   SOH_VALUE       = 12,
   PACK_VOLTAGE    = 13,
   PACK_CURRENT    = 14,
-  HIGH_TEMP       = 15
+  HIGH_TEMP       = 15,
+	BROAD_CONFIG		= 16
 } param_cmd_t;
 
 typedef enum dcan_broadcast {

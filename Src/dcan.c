@@ -440,6 +440,14 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[1] = extract_MSB(bms.macros.high_temp);
       msg.Data[2] = extract_LSB(bms.macros.high_temp);
       break;
+    case BROAD_CONFIG:
+    	msg.Data[1] = bitwise_or(CONFIG_VOLT_MSG_SHIFT, CONFIG_VOLT_MSG_MASK, bms.params.volt_msg_en);
+    	msg.Data[1] |= bitwise_or(CONFIG_TEMP_MSG_SHIFT, CONFIG_TEMP_MSG_MASK, bms.params.temp_msg_en);
+    	msg.Data[1] |= bitwise_or(CONFIG_OCV_MSG_SHIFT, CONFIG_OCV_MSG_MASK, bms.params.ocv_msg_en);
+    	msg.Data[1] |= bitwise_or(CONFIG_IR_MSG_SHIFT, CONFIG_IR_MSG_MASK, bms.params.ir_msg_en);
+    	msg.Data[1] |= bitwise_or(CONFIG_MACRO_MSG_SHIFT, CONFIG_MACRO_MSG_MASK, bms.params.macro_msg_en);
+    	msg.Data[2] = 0;
+    	break;
   }
   
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
