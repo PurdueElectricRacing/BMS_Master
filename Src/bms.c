@@ -370,7 +370,7 @@ void task_bms_main() {
 *
 *     Function Description: sends a wakeup message to the slaves
 ***************************************************************************/
-success_t power_cmd_slaves(powercmd_t poweron) {
+Success_t power_cmd_slaves(powercmd_t poweron) {
 	CanTxMsgTypeDef msg;
 	msg.IDE = CAN_ID_STD;
 	msg.RTR = CAN_RTR_DATA;
@@ -400,9 +400,9 @@ success_t power_cmd_slaves(powercmd_t poweron) {
 *
 *     Function Description: sends a wakeup message to the slaves
 ***************************************************************************/
-success_t slaves_connected() {
+Success_t slaves_connected() {
 	uint8_t i = 0;
-	success_t success = SUCCESSFUL;
+	Success_t success = SUCCESSFUL;
 	for (i = 0; i < NUM_SLAVES; i++) {
 		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdTRUE) {
 			if(bms.fault.slave[i].connected == FAULTED) {
@@ -433,7 +433,7 @@ success_t slaves_connected() {
 *
 *     Function Description: clears all pending faults in the BMS
 ***************************************************************************/
-success_t clear_faults() {
+Success_t clear_faults() {
 	uint8_t i = 0;
 
 	bms.fault.charg_en = NORMAL;
@@ -471,7 +471,7 @@ success_t clear_faults() {
 *     Function Description: sends fault code to the GUI see CAN msg docs for
 *     more info on what each bit is representing
 ***************************************************************************/
-success_t send_faults() {
+Success_t send_faults() {
 	CanTxMsgTypeDef msg;
 	uint8_t i = 0;
 	msg.IDE = CAN_ID_STD;

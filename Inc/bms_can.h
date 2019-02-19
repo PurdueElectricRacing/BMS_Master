@@ -116,9 +116,6 @@ void bms_can_filter_init();
 void task_txBmsCan();
 void task_Slave_WDawg();
 void task_BmsCanProcess();
-void send_ack();
-success_t process_temp(CanRxMsgTypeDef* rx);
-success_t process_volt(CanRxMsgTypeDef* rx);
 
 
 #endif /* BMS_CAN_H_ */

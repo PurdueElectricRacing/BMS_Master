@@ -16,6 +16,16 @@
 
 #include "dcan.h"
 
+Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can);
+Success_t process_gui_param_set(CanRxMsgTypeDef* rx_can);
+Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can);
+Success_t send_volt_msg();
+Success_t send_temp_msg();
+Success_t send_ocv_msg();
+Success_t send_ir_msg();
+Success_t send_macro_msg();
+Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type);
+
 /***************************************************************************
 *
 *     Function Information
@@ -161,7 +171,6 @@ void task_DcanProcess() {
 void task_broadcast() {
 	TickType_t time_init = 0;
 	uint16_t i = 0;
-	uint16_t x = 0;
 	while (1) {
 		time_init = xTaskGetTickCount();
 		if (bms.params.volt_msg_en == ASSERTED) {
@@ -243,7 +252,7 @@ void dcan_filter_init(CAN_HandleTypeDef* hcan) {
 *
 *     Programmer's Name: Matt Flanagan
 *
-*     Function Return Type: success_t
+*     Function Return Type: Success_t
 *
 *     Parameters (list data type, name, and comment one per line):
 *       1. CanRxMsgTypeDef* rx_can
@@ -256,8 +265,8 @@ void dcan_filter_init(CAN_HandleTypeDef* hcan) {
 *     configs broadcast paramaters for msg's on dcan
 *
 ***************************************************************************/
-success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
-	success_t status = SUCCESSFUL;
+Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
+	Success_t status = SUCCESSFUL;
 
 	switch (rx_can->Data[0]) {
 	case LOG_DATA:
@@ -295,7 +304,7 @@ success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
 *
 *     Programmer's Name: Matt Flanagan
 *
-*     Function Return Type: success_t
+*     Function Return Type: Success_t
 *
 *     Parameters (list data type, name, and comment one per line):
 *       1. CanRxMsgTypeDef* rx_can
@@ -306,8 +315,8 @@ success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
 *     Function Description: processes a gui param config msg and sets the appropriate variable
 *
 ***************************************************************************/
-success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
-	success_t status = SUCCESSFUL;
+Success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
+	Success_t status = SUCCESSFUL;
 
 	if (xSemaphoreTake(bms.params.sem, TIMEOUT) == pdTRUE) {
 		switch (rx_can->Data[0]) {
@@ -353,8 +362,8 @@ success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
 	return status;
 }
 
-success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
-	success_t status = SUCCESSFUL;
+Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
+	Success_t status = SUCCESSFUL;
 	CanTxMsgTypeDef msg;
 	msg.IDE = CAN_ID_STD;
 	msg.RTR = CAN_RTR_DATA;
@@ -434,34 +443,34 @@ success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
 	return status;
 }
 
-success_t send_volt_msg() {
-	success_t status = SUCCESSFUL;
+Success_t send_volt_msg() {
+	Success_t status = SUCCESSFUL;
 	status = send_generic_msg(NUM_VTAPS, VOLT_MSG);
 	return status;
 }
 
-success_t send_temp_msg() {
-	success_t status = SUCCESSFUL;
+Success_t send_temp_msg() {
+	Success_t status = SUCCESSFUL;
 	status = send_generic_msg(NUM_TEMP, TEMP_MSG);
 	return status;
 }
 
-success_t send_ocv_msg() {
-	success_t status = SUCCESSFUL;
+Success_t send_ocv_msg() {
+	Success_t status = SUCCESSFUL;
 	status = send_generic_msg(NUM_VTAPS, OCV_MSG);
 	return status;
 }
 
-success_t send_ir_msg() {
-	success_t status = SUCCESSFUL;
+Success_t send_ir_msg() {
+	Success_t status = SUCCESSFUL;
 	status = send_generic_msg(NUM_VTAPS, IR_MSG);
 	return status;
 }
 
 // can msg for macro
 //[SOC_MSB, SOC_LSB, PACKVOLT_MSB, PACKVOLT_LSB, PACKI_MSB, PACKI_LSB, TEMP_MSB, TEMP_LSB]
-success_t send_macro_msg() {
-	success_t status = SUCCESSFUL;
+Success_t send_macro_msg() {
+	Success_t status = SUCCESSFUL;
 
 	CanTxMsgTypeDef msg;
 	msg.IDE = CAN_ID_STD;
@@ -483,8 +492,8 @@ success_t send_macro_msg() {
 	return status;
 }
 
-success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
-	success_t status = SUCCESSFUL;
+Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
+	Success_t status = SUCCESSFUL;
 	uint8_t i = 0;
 	uint8_t x = 0;
 	CanTxMsgTypeDef msg;

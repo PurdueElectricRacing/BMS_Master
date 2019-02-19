@@ -16,6 +16,9 @@
 
 #include "bms_can.h"
 
+Success_t process_temp(CanRxMsgTypeDef* rx);
+Success_t process_volt(CanRxMsgTypeDef* rx);
+
 //global variables
 volatile WatchDawg_t wdawg[NUM_SLAVES];
 
@@ -158,6 +161,12 @@ void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
 void task_Slave_WDawg() {
   TickType_t time_init = 0;
   uint8_t i = 0;
+  CanTxMsgTypeDef msg;
+	msg.IDE = CAN_ID_STD;
+	msg.RTR = CAN_RTR_DATA;
+	msg.DLC = MACRO_MSG_LENGTH;
+	msg.StdId = ID_WDAWG;
+	msg.Data[0] = 1;
   //init watch dawg
   for (i = 0; i < NUM_SLAVES; i ++) {
     xSemaphoreGive(wdawg[i].master_sem); //allows it to be taken
@@ -185,6 +194,7 @@ void task_Slave_WDawg() {
     } else {
     	//semaphore not acquired
     }
+    xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
 }
@@ -253,7 +263,6 @@ void task_txBmsCan() {
 ***************************************************************************/
 void task_BmsCanProcess() {
   CanRxMsgTypeDef rx_can;
-  uint8_t i = 0;
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
@@ -309,8 +318,8 @@ void task_BmsCanProcess() {
 *     Function Description: takes the newest received data and updates the temp
 *     array accordingly and does safety checks accordingly
 ***************************************************************************/
-success_t process_temp(CanRxMsgTypeDef* rx) {
-	success_t status = SUCCESSFUL;
+Success_t process_temp(CanRxMsgTypeDef* rx) {
+	Success_t status = SUCCESSFUL;
 	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
 	uint8_t slave = rx->Data[0];
 	fault_t overtemp = NORMAL;
@@ -352,6 +361,10 @@ success_t process_temp(CanRxMsgTypeDef* rx) {
 		bms.temp.data[slave][loc++] = temp1;
 		bms.temp.data[slave][loc++] = temp2;
 		bms.temp.data[slave][loc] = temp3;
+
+		if (bms.macros.high_temp < max(max(temp1, temp2), temp3)) {
+			bms.macros.high_temp = max(max(temp1, temp2), temp3);
+		}
 		xSemaphoreGive(bms.temp.sem);
 	} else {
 		status = FAILURE;
@@ -380,8 +393,8 @@ success_t process_temp(CanRxMsgTypeDef* rx) {
 *     Function Description: takes the newest received data and updates the volt
 *     array accordingly and does safety checks accordingly
 ***************************************************************************/
-success_t process_volt(CanRxMsgTypeDef* rx) {
-	success_t status = SUCCESSFUL;
+Success_t process_volt(CanRxMsgTypeDef* rx) {
+	Success_t status = SUCCESSFUL;
 	uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
 	uint8_t slave = rx->Data[0];
 	fault_t overvolt = NORMAL;

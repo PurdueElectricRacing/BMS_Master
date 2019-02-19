@@ -8,7 +8,6 @@
 #ifndef BMS_H_
 #define BMS_H_
 
-#include "main.h"
 #include "cmsis_os.h"
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_can.h"
@@ -16,6 +15,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "main.h"
 #include "bms_can.h"
 #include "dcan.h"
 
@@ -35,6 +35,7 @@
 //Delays
 #define DELAY_SLAVE_CON	500 / portTICK_RATE_MS //time between checking if all slaves are connected
 #define DELAY_RESET			500 / portTICK_RATE_MS
+
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE 				128
 #define HEARTBEAT_PRIORITY  				2
@@ -80,6 +81,10 @@
 
 //Macros
 #define bitwise_or(shift, mask, logical) (((uint8_t) logical << shift) | mask)
+#define max(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a > _b ? _a : _b; })
 
 enum bms_master_state {
   INIT        = 0,
@@ -87,31 +92,28 @@ enum bms_master_state {
   NORMAL_OP   = 2,
   ERROR_BMS   = 3,
   SOFT_RESET  = 4,
-  SHUTDOWN    = 5
+  SHUTDOWN    = 5,
 };
 
-enum power_state {
+typedef enum power_state {
 	POWER_ON = 0,
-	POWER_OFF = 1
+	POWER_OFF = 1,
 }powercmd_t;
 
-enum flag_state {
+typedef enum flag_state {
 	ASSERTED = 1,
-	DEASSERTED = 0
+	DEASSERTED = 0,
 }flag_t;
 
-enum fault_state {
+typedef enum fault_state {
 	FAULTED = 0,
-	NORMAL = 1
+	NORMAL = 1,
 }fault_t;
 
-
-//Note to self @future Matt if you changed this to be normal logic
-//it screws one thing up that is expecting it in the current way
-enum success_state {
+typedef enum {
 	SUCCESSFUL = 0,
-	FAILURE = 1
-}success_t;
+	FAILURE = 1,
+}Success_t;
 
 typedef struct {
 	SemaphoreHandle_t sem;
@@ -141,7 +143,7 @@ typedef struct {
 	fault_t undertemp;
 	slave_faults slave[NUM_SLAVES];
 	SemaphoreHandle_t sem;
-}bmsfaults_t;
+} bmsfaults_t;
 
 typedef struct {
 	int16_t temp_high_lim; //temp
@@ -227,10 +229,11 @@ void initRTOSObjects();
 void task_heartbeat();
 void task_error_check();
 void task_bms_main();
-success_t power_cmd_slaves(powercmd_t poweron);
-success_t slaves_connected();
-success_t send_faults();
+Success_t power_cmd_slaves(powercmd_t poweron);
+Success_t slaves_connected();
+Success_t send_faults();
 void initRTOSNormal();
+Success_t clear_faults();
 
 
 #endif /* BMS_H_ */

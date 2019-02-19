@@ -83,14 +83,14 @@
 //structures
 
 //enums
-enum gui_cmd {
+typedef enum gui_cmd {
 	LOG_DATA = 0,
 	DELETE = 1,
 	CONFIGURE = 2,
 	NO_OPERATION = 3
 }gui_cmd_t;
 
-enum param_cmd {
+typedef enum param_cmd {
 	TEMP_HIGH_LIMIT = 0,
 	TEMP_LOW_LIMIT = 	1,
 	VOLT_HIGH_LIMIT = 2,
@@ -109,7 +109,7 @@ enum param_cmd {
 	HIGH_TEMP				= 15
 }param_cmd_t;
 
-enum dcan_broadcast {
+typedef enum dcan_broadcast {
 	VOLT_MSG = 0,
 	TEMP_MSG = 1,
 	OCV_MSG = 2,
@@ -121,14 +121,6 @@ void dcan_filter_init();
 void task_txDcan();
 void task_broadcast();
 void task_DcanProcess();
-success_t process_gui_cmd(CanRxMsgTypeDef* rx_can);
-success_t send_volt_msg();
-success_t send_temp_msg();
-success_t send_ocv_msg();
-success_t send_ir_msg();
-success_t send_macro_msg();
-success_t send_generic_msg();
-
 
 
 #endif /* DCAN_H_ */
