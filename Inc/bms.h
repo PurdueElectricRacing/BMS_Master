@@ -22,7 +22,7 @@
 #define NUM_SLAVES        2 //how many slaves are hooked up to the system
 #define NUM_VTAPS         6 //number of voltage taps per module
 #define NUM_TEMP          2 //number of thermistors per module
-#define NUM_NORMAL_TASKS  1 //number of tasks that aren't normal
+#define NUM_NORMAL_TASKS  2 //number of tasks that aren't normal
 
 //Default Limits (Eventually should move this to the SD card)
 #define LIMIT_TEMP_HIGH   600       //60 degrees C
@@ -35,6 +35,7 @@
 //Delays
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
 #define DELAY_RESET     500 / portTICK_RATE_MS
+#define SEND_ERROR_DELAY	1000 / portTICK_RATE_MS
 
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE        128
@@ -80,11 +81,16 @@
 #define FAULT_MODH_VOLT_SHIFT     6
 
 //Macros
-#define bitwise_or(shift, mask, logical) (((uint8_t) logical << shift) | mask)
+#define bitwise_or(shift, mask, logical) (((uint8_t) logical << shift) & mask)
 #define max(a,b) \
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
+//used to reduce a byte to a logical value based off a specified location request
+#define bit_extract(mask, shift, byte) (byte & mask) >> shift
+#define byte_combine(msb, lsb) ((msb << 8) | lsb)
+//if it is time for the said msg to send
+#define execute_broadcast(msg_rate, i) (i % (msg_rate / BROADCAST_MS) == 0)
 
 enum bms_master_state {
   INIT        = 0,
@@ -171,6 +177,7 @@ typedef struct {
 } params_t;
 
 typedef struct {
+	//todo: add a semaphore
   uint8_t soc;        //percent
   uint8_t soh;        //percent
   uint16_t pack_volt; //voltage
@@ -234,6 +241,7 @@ Success_t slaves_connected();
 Success_t send_faults();
 void initRTOSNormal();
 Success_t clear_faults();
+void debug_lights(flag_t orange, flag_t red, flag_t green, flag_t blue);
 
 
 #endif /* BMS_H_ */

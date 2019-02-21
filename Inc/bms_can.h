@@ -4,7 +4,6 @@
  *  Created on: Feb 11, 2019
  *      Author: Matt Flanagan
  */
-
 #ifndef BMS_CAN_H_
 #define BMS_CAN_H_
 
@@ -16,8 +15,8 @@
 
 //ID Master -> Slave
 #define ID_BMS_WAKEUP         0x600
-#define ID_MAS_CONFIG  0x601
-#define ID_MAS_PASSIVE   0x603
+#define ID_MAS_CONFIG  				0x601
+#define ID_MAS_PASSIVE   			0x603
 #define ID_WDAWG              0x604
 
 //ID Slave -> Master
@@ -50,9 +49,6 @@
 #define WDAWG_PRIORITY      1
 
 //Macros
-//used to reduce a byte to a logical value based off a specified location request
-#define bit_extract(mask, shift, byte) (byte & mask) >> shift
-#define byte_combine(msb, lsb) ((msb << 8) | lsb)
 
 //structures
 typedef struct {

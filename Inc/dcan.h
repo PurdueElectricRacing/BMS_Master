@@ -73,8 +73,6 @@
 #define BROADCAST_PRIORITY     1
 
 //Macros
-//if it is time for the said msg to send
-#define execute_broadcast(msg_rate, i) ((msg_rate / BROADCAST_MS) % i == 0)
 
 //expects a uint16_t type
 #define extract_LSB(value) (value & 0x00FF)

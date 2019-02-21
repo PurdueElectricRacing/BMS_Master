@@ -165,6 +165,8 @@ void initRTOSNormal() {
   uint8_t i = 0;
   xTaskCreate(task_broadcast, "Broadcasting Info on DCAN", BROADCAST_STACK_SIZE, NULL,
               BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
+  xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL, ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
+
 }
 
 /***************************************************************************
@@ -285,7 +287,7 @@ void task_bms_main() {
         //TODO: do self checks
         //TODO: confirm current sense
         //TODO: confirm SD card connection
-        
+        HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //close SDC
         if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
           bms.state = BMS_CONNECT;
           xSemaphoreGive(bms.state_sem); //release sem
@@ -304,7 +306,7 @@ void task_bms_main() {
         }
         break;
       case NORMAL_OP:
-        //TODO: start normal op tasks (get handles to all)
+      	initRTOSNormal();
         //TODO: read from all of the sensors
         //TODO: manage passive balancing if necessary
         break;
@@ -312,10 +314,7 @@ void task_bms_main() {
         //TODO: kill all non critical tasks
         HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_SET); //open SDC
         send_faults();
-        if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-          bms.state = SHUTDOWN;
-          xSemaphoreGive(bms.state_sem); //release sem
-        }
+        vTaskDelay(SEND_ERROR_DELAY);
         break;
       case SHUTDOWN:
         //TODO: kill all non critical tasks
@@ -509,7 +508,28 @@ Success_t send_faults() {
   return SUCCESSFUL;
 }
 
-
+void debug_lights(flag_t orange, flag_t red, flag_t green, flag_t blue) {
+	if (orange == ASSERTED) {
+		HAL_GPIO_WritePin(ORANGE_LED_GPIO_Port, ORANGE_LED_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(ORANGE_LED_GPIO_Port, ORANGE_LED_Pin, GPIO_PIN_RESET);
+	}
+	if (red == ASSERTED) {
+		HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
+	}
+	if (green == ASSERTED) {
+		HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
+	}
+	if (blue == ASSERTED) {
+		HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_SET);
+	} else {
+		HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
+	}
+}
 
 
 
