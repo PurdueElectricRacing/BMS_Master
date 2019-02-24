@@ -81,7 +81,7 @@ extern "C" {
 
 /* USER CODE END EM */
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim);
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
@@ -91,17 +91,20 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define USER_Btn_Pin GPIO_PIN_13
+#define USER_Btn_GPIO_Port GPIOC
 #define WDI_Pin GPIO_PIN_0
 #define WDI_GPIO_Port GPIOF
-#define CHARGE_ENABLE_Pin GPIO_PIN_2
-#define CHARGE_ENABLE_GPIO_Port GPIOF
 #define SDC_BMS_FAULT_Pin GPIO_PIN_3
 #define SDC_BMS_FAULT_GPIO_Port GPIOF
 #define LPM_Pin GPIO_PIN_4
 #define LPM_GPIO_Port GPIOF
 #define POWER_LOSS_Pin GPIO_PIN_10
 #define POWER_LOSS_GPIO_Port GPIOF
-#define POWER_LOSS_EXTI_IRQn EXTI15_10_IRQn
+#define MCO_Pin GPIO_PIN_0
+#define MCO_GPIO_Port GPIOH
+#define RMII_MDC_Pin GPIO_PIN_1
+#define RMII_MDC_GPIO_Port GPIOC
 #define ISENSE_1_Pin GPIO_PIN_1
 #define ISENSE_1_GPIO_Port GPIOA
 #define ISENSE_2_Pin GPIO_PIN_2
@@ -112,24 +115,38 @@ void Error_Handler(void);
 #define BLUE_LED_GPIO_Port GPIOE
 #define GREEN_LED_Pin GPIO_PIN_11
 #define GREEN_LED_GPIO_Port GPIOE
-#define ORANGE_LED_Pin GPIO_PIN_12
-#define ORANGE_LED_GPIO_Port GPIOE
-#define RED_LED_Pin GPIO_PIN_13
+#define RED_LED_Pin GPIO_PIN_12
 #define RED_LED_GPIO_Port GPIOE
-#define CHARG_RX_Pin GPIO_PIN_12
-#define CHARG_RX_GPIO_Port GPIOB
-#define CHARG_TX_Pin GPIO_PIN_13
-#define CHARG_TX_GPIO_Port GPIOB
+#define ORANGE_LED_Pin GPIO_PIN_13
+#define ORANGE_LED_GPIO_Port GPIOE
+#define LD3_Pin GPIO_PIN_14
+#define LD3_GPIO_Port GPIOB
+#define STLK_RX_Pin GPIO_PIN_8
+#define STLK_RX_GPIO_Port GPIOD
+#define STLK_TX_Pin GPIO_PIN_9
+#define STLK_TX_GPIO_Port GPIOD
+#define USB_PowerSwitchOn_Pin GPIO_PIN_6
+#define USB_PowerSwitchOn_GPIO_Port GPIOG
+#define USB_OverCurrent_Pin GPIO_PIN_7
+#define USB_OverCurrent_GPIO_Port GPIOG
 #define BMSCAN_RX_Pin GPIO_PIN_8
 #define BMSCAN_RX_GPIO_Port GPIOA
 #define DCAN_RX_Pin GPIO_PIN_11
 #define DCAN_RX_GPIO_Port GPIOA
 #define DCAN_TX_Pin GPIO_PIN_12
 #define DCAN_TX_GPIO_Port GPIOA
+#define TMS_Pin GPIO_PIN_13
+#define TMS_GPIO_Port GPIOA
+#define TCK_Pin GPIO_PIN_14
+#define TCK_GPIO_Port GPIOA
 #define DETECT_SDIO_Pin GPIO_PIN_0
 #define DETECT_SDIO_GPIO_Port GPIOD
+#define SWO_Pin GPIO_PIN_3
+#define SWO_GPIO_Port GPIOB
 #define BMSCAN_TX_Pin GPIO_PIN_4
 #define BMSCAN_TX_GPIO_Port GPIOB
+#define LD2_Pin GPIO_PIN_7
+#define LD2_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

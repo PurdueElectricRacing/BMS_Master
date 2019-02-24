@@ -19,7 +19,7 @@
 #include "bms_can.h"
 #include "dcan.h"
 
-#define NUM_SLAVES        2 //how many slaves are hooked up to the system
+#define NUM_SLAVES        1 //how many slaves are hooked up to the system
 #define NUM_VTAPS         6 //number of voltage taps per module
 #define NUM_TEMP          2 //number of thermistors per module
 #define NUM_NORMAL_TASKS  2 //number of tasks that aren't normal
@@ -35,7 +35,8 @@
 //Delays
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
 #define DELAY_RESET     500 / portTICK_RATE_MS
-#define SEND_ERROR_DELAY	1000 / portTICK_RATE_MS
+#define SEND_ERROR_DELAY  1000 / portTICK_RATE_MS
+#define DELAY_BMS_CONNECT	50 / portTICK_RATE_MS
 
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE        128
@@ -97,8 +98,7 @@ enum bms_master_state {
   BMS_CONNECT = 1,
   NORMAL_OP   = 2,
   ERROR_BMS   = 3,
-  SOFT_RESET  = 4,
-  SHUTDOWN    = 5,
+  SHUTDOWN    = 4,
 };
 
 typedef enum power_state {
@@ -112,8 +112,8 @@ typedef enum flag_state {
 } flag_t;
 
 typedef enum fault_state {
-  FAULTED = 0,
-  NORMAL = 1,
+  FAULTED = 1,
+  NORMAL = 0,
 } fault_t;
 
 typedef enum {
@@ -141,6 +141,7 @@ typedef struct {
 
 typedef struct {
   flag_t clear;       //clear all current faults
+  fault_t overall;		//is there a fault anywhere on the BMS?
   fault_t charg_en;     //is charging enabled
   fault_t discharg_en;  //is discharge enabled
   fault_t overvolt;     //was there an over volt
@@ -177,7 +178,7 @@ typedef struct {
 } params_t;
 
 typedef struct {
-	//todo: add a semaphore
+  //todo: add a semaphore
   uint8_t soc;        //percent
   uint8_t soh;        //percent
   uint16_t pack_volt; //voltage
@@ -219,7 +220,14 @@ typedef struct {
   TIM_HandleTypeDef* tim;
 } periph_t;
 
+typedef struct {
+  TickType_t last_msg;
+  SemaphoreHandle_t sem;
+} WatchDawg_t;
+
 volatile bms_t bms;
+volatile WatchDawg_t wdawg[NUM_SLAVES];
+
 periph_t periph;
 
 extern ADC_HandleTypeDef hadc1;
@@ -231,7 +239,7 @@ extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
 extern TIM_HandleTypeDef htim1;
 
-void initBMSobject();
+void initBMSobject(flag_t mode);
 void initRTOSObjects();
 void task_heartbeat();
 void task_error_check();

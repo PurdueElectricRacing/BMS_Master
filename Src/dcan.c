@@ -30,35 +30,6 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type);
 *
 *     Function Information
 *
-*     Name of Function: HAL_CAN_RxFifo0MsgPendingCallback
-*
-*     Programmer's Name: Matt Flanagan
-*
-*     Function Return Type: None
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef *hcan      Can Handle
-*
-*      Global Dependents:
-*       1. None
-*
-*     Function Description: After a message has been received add it to the
-*     rx can queue and move on with life.
-*
-***************************************************************************/
-void HAL_CAN1_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
-  CanRxMsgTypeDef rx;
-  CAN_RxHeaderTypeDef header;
-  HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
-  rx.DLC = header.DLC;
-  rx.StdId = header.StdId;
-  xQueueSendFromISR(bms.q_rx_dcan, &rx, 0);
-}
-
-/***************************************************************************
-*
-*     Function Information
-*
 *     Name of Function: task_txCan
 *
 *     Programmer's Name: Matt Flanagan
@@ -173,33 +144,35 @@ void task_broadcast() {
   uint16_t i = 0;
   while (1) {
     time_init = xTaskGetTickCount();
-    if (bms.params.volt_msg_en == ASSERTED) {
-      if (execute_broadcast(bms.params.volt_msg_rate, i)) {
-        send_volt_msg();
+    if (bms.state == NORMAL_OP) {
+      if (bms.params.volt_msg_en == ASSERTED) {
+        if (execute_broadcast(bms.params.volt_msg_rate, i)) {
+          send_volt_msg();
+        }
       }
-    }
-    vTaskDelay(BROADCAST_DELAY);
-    if (bms.params.temp_msg_en == ASSERTED) {
-      if (execute_broadcast(bms.params.temp_msg_rate, i)) {
-        send_temp_msg();
+      vTaskDelay(BROADCAST_DELAY);
+      if (bms.params.temp_msg_en == ASSERTED) {
+        if (execute_broadcast(bms.params.temp_msg_rate, i)) {
+          send_temp_msg();
+        }
       }
-    }
-    vTaskDelay(BROADCAST_DELAY);
-    if (bms.params.ocv_msg_en == ASSERTED) {
-      if (execute_broadcast(bms.params.ocv_msg_rate, i)) {
-        send_ocv_msg();
+      vTaskDelay(BROADCAST_DELAY);
+      if (bms.params.ocv_msg_en == ASSERTED) {
+        if (execute_broadcast(bms.params.ocv_msg_rate, i)) {
+          send_ocv_msg();
+        }
       }
-    }
-    vTaskDelay(BROADCAST_DELAY);
-    if (bms.params.ir_msg_en == ASSERTED) {
-      if (execute_broadcast(bms.params.ir_msg_rate, i)) {
-        send_ir_msg();
+      vTaskDelay(BROADCAST_DELAY);
+      if (bms.params.ir_msg_en == ASSERTED) {
+        if (execute_broadcast(bms.params.ir_msg_rate, i)) {
+          send_ir_msg();
+        }
       }
-    }
-    vTaskDelay(BROADCAST_DELAY);
-    if (bms.params.macro_msg_en == ASSERTED) {
-      if (execute_broadcast(bms.params.macro_msg_rate, i)) {
-        send_macro_msg();
+      vTaskDelay(BROADCAST_DELAY);
+      if (bms.params.macro_msg_en == ASSERTED) {
+        if (execute_broadcast(bms.params.macro_msg_rate, i)) {
+          send_macro_msg();
+        }
       }
     }
     
@@ -441,13 +414,13 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[2] = extract_LSB(bms.macros.high_temp);
       break;
     case BROAD_CONFIG:
-    	msg.Data[1] = bitwise_or(CONFIG_VOLT_MSG_SHIFT, CONFIG_VOLT_MSG_MASK, bms.params.volt_msg_en);
-    	msg.Data[1] |= bitwise_or(CONFIG_TEMP_MSG_SHIFT, CONFIG_TEMP_MSG_MASK, bms.params.temp_msg_en);
-    	msg.Data[1] |= bitwise_or(CONFIG_OCV_MSG_SHIFT, CONFIG_OCV_MSG_MASK, bms.params.ocv_msg_en);
-    	msg.Data[1] |= bitwise_or(CONFIG_IR_MSG_SHIFT, CONFIG_IR_MSG_MASK, bms.params.ir_msg_en);
-    	msg.Data[1] |= bitwise_or(CONFIG_MACRO_MSG_SHIFT, CONFIG_MACRO_MSG_MASK, bms.params.macro_msg_en);
-    	msg.Data[2] = 0;
-    	break;
+      msg.Data[1] = bitwise_or(CONFIG_VOLT_MSG_SHIFT, CONFIG_VOLT_MSG_MASK, bms.params.volt_msg_en);
+      msg.Data[1] |= bitwise_or(CONFIG_TEMP_MSG_SHIFT, CONFIG_TEMP_MSG_MASK, bms.params.temp_msg_en);
+      msg.Data[1] |= bitwise_or(CONFIG_OCV_MSG_SHIFT, CONFIG_OCV_MSG_MASK, bms.params.ocv_msg_en);
+      msg.Data[1] |= bitwise_or(CONFIG_IR_MSG_SHIFT, CONFIG_IR_MSG_MASK, bms.params.ir_msg_en);
+      msg.Data[1] |= bitwise_or(CONFIG_MACRO_MSG_SHIFT, CONFIG_MACRO_MSG_MASK, bms.params.macro_msg_en);
+      msg.Data[2] = 0;
+      break;
   }
   
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {

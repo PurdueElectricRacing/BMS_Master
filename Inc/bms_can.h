@@ -12,11 +12,12 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 //Constants
+#define NO_MESSAGES_RECV			0
 
 //ID Master -> Slave
 #define ID_BMS_WAKEUP         0x600
-#define ID_MAS_CONFIG  				0x601
-#define ID_MAS_PASSIVE   			0x603
+#define ID_MAS_CONFIG         0x601
+#define ID_MAS_PASSIVE        0x603
 #define ID_WDAWG              0x604
 
 //ID Slave -> Master
@@ -32,7 +33,10 @@
 
 //Timeouts
 #define TIMEOUT         5 / portTICK_RATE_MS
-#define WDAWG_TIMEOUT   (NUM_SLAVES * 1000) / portTICK_RATE_MS
+#define WDAWG_TIMEOUT   (6000 / portTICK_RATE_MS) / NUM_SLAVES
+
+//Length
+#define WDAWG_LENGTH		1
 
 //TX RTOS
 #define BMSCAN_TX_STACK_SIZE   128
@@ -98,12 +102,6 @@ typedef struct {
                              This parameter can be CAN_FIFO0 or CAN_FIFO1 */
 
 } CanRxMsgTypeDef;
-
-typedef struct {
-  TickType_t last_msg;
-  TickType_t new_msg;
-  SemaphoreHandle_t master_sem;
-} WatchDawg_t;
 
 //Global Variables
 
