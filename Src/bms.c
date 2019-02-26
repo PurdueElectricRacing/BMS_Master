@@ -9,20 +9,6 @@
 uint16_t steer_angle = 0;
 uint16_t steer_strain = 0;
 
-void HAL_GPIO_EXTI_Callback(uint16_t pin) {
-
-  switch (pin) {
-    case POWER_LOSS_PIN: //TODO confirm this is correct
-      if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-        bms.state = SHUTDOWN;
-        xSemaphoreGive(bms.state_sem); //release sem
-      }
-      break;
-    default:
-      break;
-  }
-}
-
 /***************************************************************************
 *
 *     Function Information
@@ -79,7 +65,7 @@ void task_error_check() {
   while (1) {
     time_init = xTaskGetTickCount();
     fault = NORMAL;
-    if (bms.state == NORMAL_OP) {
+    if (bms.state == NORMAL_OP || bms.state == ERROR_BMS) {
       if (bms.fault.charg_en == FAULTED ||
           bms.fault.discharg_en == FAULTED ||
           bms.fault.overtemp == FAULTED ||
@@ -298,12 +284,12 @@ void task_bms_main() {
     time_init = xTaskGetTickCount();
     i++;
     //================ADC===================
-    HAL_ADC_Start(periph.i_adc); //Start the ADC
-		HAL_ADC_PollForConversion(periph.i_adc, 100); //read channel 12
-		steer_angle = HAL_ADC_GetValue(periph.i_adc);
-		HAL_ADC_PollForConversion(periph.i_adc, 100);
-		steer_strain = HAL_ADC_GetValue(periph.i_adc);	//read channel 16
-		HAL_ADC_Stop(periph.i_adc);
+//    HAL_ADC_Start(periph.i_adc); //Start the ADC
+//		HAL_ADC_PollForConversion(periph.i_adc, 100); //read channel 12
+//		steer_angle = HAL_ADC_GetValue(periph.i_adc);
+//		HAL_ADC_PollForConversion(periph.i_adc, 100);
+//		steer_strain = HAL_ADC_GetValue(periph.i_adc);	//read channel 16
+//		HAL_ADC_Stop(periph.i_adc);
     //======================================
     switch (bms.state) {
       case INIT:
@@ -341,6 +327,7 @@ void task_bms_main() {
         //TODO: kill all non critical tasks
       	if (bms.fault.overall == NORMAL) {
       		//Error has since corrected itself go back to normal operation
+      		HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //open SDC
       		if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
 						bms.state = NORMAL_OP;
 						xSemaphoreGive(bms.state_sem); //release sem

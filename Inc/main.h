@@ -91,8 +91,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define USER_Btn_Pin GPIO_PIN_13
-#define USER_Btn_GPIO_Port GPIOC
 #define WDI_Pin GPIO_PIN_0
 #define WDI_GPIO_Port GPIOF
 #define SDC_BMS_FAULT_Pin GPIO_PIN_3
@@ -101,6 +99,7 @@ void Error_Handler(void);
 #define LPM_GPIO_Port GPIOF
 #define POWER_LOSS_Pin GPIO_PIN_10
 #define POWER_LOSS_GPIO_Port GPIOF
+#define POWER_LOSS_EXTI_IRQn EXTI15_10_IRQn
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define RMII_MDC_Pin GPIO_PIN_1
@@ -139,8 +138,8 @@ void Error_Handler(void);
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
 #define TCK_GPIO_Port GPIOA
-#define DETECT_SDIO_Pin GPIO_PIN_0
-#define DETECT_SDIO_GPIO_Port GPIOD
+#define SD_DETECT_Pin GPIO_PIN_0
+#define SD_DETECT_GPIO_Port GPIOD
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
 #define BMSCAN_TX_Pin GPIO_PIN_4
