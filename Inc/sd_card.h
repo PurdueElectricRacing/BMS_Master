@@ -14,4 +14,6 @@
 
 #define SD_CARD_RATE       500 / portTICK_RATE_MS // @matt
 
+void init_sd_card();
+
 #endif /* SD_CARD_H_ */

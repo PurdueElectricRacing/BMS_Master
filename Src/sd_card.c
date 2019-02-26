@@ -36,19 +36,43 @@ void task_sd_card() {
 	{
 	  /*##-6- Close the open text file #################################*/
 	  f_close(&MyFile);
+	  /*##-7- Open the text file object with read access ###############*/
+	  if(f_open(&MyFile, "STM32.TXT", FA_READ) != FR_OK)
+	  {
+		return;/* 'STM32.TXT' file Open for read Error */
+	  }
+	  else
+	  {
+		/*##-8- Read data from the text file ###########################*/
+		res = f_read(&MyFile, rtext, sizeof(rtext), (UINT*)&bytesread);
+		if((bytesread == 0) || (res != FR_OK)) /* EOF or Error */
+		{
+		  return;/* 'STM32.TXT' file Read or EOF Error */
+		}
+		else
+		{
+		  /*##-9- Close the open text file #############################*/
+		  f_close(&MyFile);
+		  /*##-10- Compare read data with the expected data ############*/
+		  if ((bytesread != byteswritten))
+		  {
+			return;/* Read data is different from the expected data */
+		  }
+		}
+	  }
 	}
+  }
 }
 
 void init_sd_card(){
 	FATFS SDFatFs;  /* File system object for SD disk logical drive */
-	FIL MyFile;     /* File object */
 	char SDPath[4]; /* SD disk logical drive path */
 	uint8_t workBuffer[_MAX_SS];
 
 	if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0){
 	    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
 	    {
-	    	;// error handling
+	    	return;// error handling
 	    }
 	    else{
 	    	if (f_mkfs((TCHAR const*)SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer)) != FR_OK){
@@ -60,6 +84,6 @@ void init_sd_card(){
 	    }
 	}
 	else{
-		;// error handling
+		return;// error handling
 	}
 }

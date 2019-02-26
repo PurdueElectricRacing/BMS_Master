@@ -622,7 +622,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspInit 0 */
-    
+
   /* USER CODE END USART3_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
@@ -640,7 +640,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART3_MspInit 1 */
-    
+
   /* USER CODE END USART3_MspInit 1 */
   }
 
@@ -659,7 +659,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspDeInit 0 */
-    
+
   /* USER CODE END USART3_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_USART3_CLK_DISABLE();
@@ -671,7 +671,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOD, STLK_RX_Pin|STLK_TX_Pin);
 
   /* USER CODE BEGIN USART3_MspDeInit 1 */
-    
+
   /* USER CODE END USART3_MspDeInit 1 */
   }
 

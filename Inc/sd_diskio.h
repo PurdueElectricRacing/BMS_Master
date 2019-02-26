@@ -52,6 +52,7 @@
 
 /* USER CODE BEGIN firstSection */ 
 /* can be used to modify / undefine following code or add new definitions */
+#include "ff_gen_drv.h"
 /* USER CODE END firstSection */
 
 /* Includes ------------------------------------------------------------------*/
