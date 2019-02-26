@@ -36,7 +36,7 @@
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
 #define DELAY_RESET     500 / portTICK_RATE_MS
 #define SEND_ERROR_DELAY  1000 / portTICK_RATE_MS
-#define DELAY_BMS_CONNECT	50 / portTICK_RATE_MS
+#define DELAY_BMS_CONNECT 50 / portTICK_RATE_MS
 
 //RTOS Defines
 #define HEARTBEAT_STACK_SIZE        128
@@ -141,7 +141,7 @@ typedef struct {
 
 typedef struct {
   flag_t clear;       //clear all current faults
-  fault_t overall;		//is there a fault anywhere on the BMS?
+  fault_t overall;    //is there a fault anywhere on the BMS?
   fault_t charg_en;     //is charging enabled
   fault_t discharg_en;  //is discharge enabled
   fault_t overvolt;     //was there an over volt

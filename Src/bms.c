@@ -84,19 +84,19 @@ void task_error_check() {
       }
       
       if (fault == FAULTED) {
-      	if(xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-					bms.fault.overall = FAULTED;
-					xSemaphoreGive(bms.fault.sem);
-				}
+        if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+          bms.fault.overall = FAULTED;
+          xSemaphoreGive(bms.fault.sem);
+        }
         if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
           bms.state = ERROR_BMS;
           xSemaphoreGive(bms.state_sem); //release sem
         }
       } else {
-      	if(xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-      		bms.fault.overall = NORMAL;
-      		xSemaphoreGive(bms.fault.sem);
-      	}
+        if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+          bms.fault.overall = NORMAL;
+          xSemaphoreGive(bms.fault.sem);
+        }
       }
     }
     
@@ -126,7 +126,7 @@ void task_error_check() {
 ***************************************************************************/
 void initRTOSObjects() {
   uint8_t i = 0;
-
+  
   //define q's
   bms.q_rx_bmscan = xQueueCreate(BMSCAN_TX_Q_SIZE, sizeof(CanTxMsgTypeDef));
   bms.q_tx_bmscan = xQueueCreate(BMSCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
@@ -141,8 +141,10 @@ void initRTOSObjects() {
   xTaskCreate(task_DcanProcess, "Dcan Process", DCAN_RX_STACK_SIZE, NULL, DCAN_RX_PRIORITY, NULL);
   xTaskCreate(task_bms_main, "Main Task", BMS_MAIN_STACK_SIZE, NULL, BMS_MAIN_PRIORITY, NULL);
   xTaskCreate(task_heartbeat, "Heartbeat", HEARTBEAT_STACK_SIZE, NULL, HEARTBEAT_PRIORITY, NULL);
-  xTaskCreate(task_broadcast, "Broadcasting Info on DCAN", BROADCAST_STACK_SIZE, NULL, BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
-	xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL, ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
+  xTaskCreate(task_broadcast, "Broadcasting Info on DCAN", BROADCAST_STACK_SIZE, NULL,
+              BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
+  xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
+              ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
 }
 
 /***************************************************************************
@@ -166,17 +168,17 @@ void initRTOSObjects() {
 void initBMSobject(flag_t mode) {
   uint8_t i = 0;
   uint8_t x = 0;
-
+  
   if (mode == DEASSERTED) {
-  	bms.state_sem = xSemaphoreCreateBinary();
-		bms.params.sem = xSemaphoreCreateBinary();
-		bms.fault.sem = xSemaphoreCreateBinary();
-
-		xSemaphoreGive(bms.state_sem);
-		xSemaphoreGive(bms.fault.sem);
-		xSemaphoreGive(bms.params.sem);
+    bms.state_sem = xSemaphoreCreateBinary();
+    bms.params.sem = xSemaphoreCreateBinary();
+    bms.fault.sem = xSemaphoreCreateBinary();
+    
+    xSemaphoreGive(bms.state_sem);
+    xSemaphoreGive(bms.fault.sem);
+    xSemaphoreGive(bms.params.sem);
   }
-
+  
   //TODO read these limits off of the SD Card maybe?
   bms.params.charg_lim = LIMIT_CHARG;
   bms.params.discharg_lim = LIMIT_DISCHARG;
@@ -209,12 +211,12 @@ void initBMSobject(flag_t mode) {
     bms.fault.slave[i].temp_sens = NORMAL;
     bms.fault.slave[i].volt_sens = NORMAL;
     if (mode == DEASSERTED) {
-    	bms.vtaps.sem = xSemaphoreCreateBinary();
-			bms.temp.sem = xSemaphoreCreateBinary();
-			xSemaphoreGive(bms.vtaps.sem);
-			xSemaphoreGive(bms.temp.sem);
+      bms.vtaps.sem = xSemaphoreCreateBinary();
+      bms.temp.sem = xSemaphoreCreateBinary();
+      xSemaphoreGive(bms.vtaps.sem);
+      xSemaphoreGive(bms.temp.sem);
     }
-
+    
     //initialize all vtap data
     for (x = 0; x < NUM_VTAPS; x ++) {
       bms.vtaps.data[i][x] = 0;
@@ -227,23 +229,23 @@ void initBMSobject(flag_t mode) {
   }
   
   for (i = 0; i < NUM_SLAVES; i ++) {
-  	if (mode == DEASSERTED) {
-			wdawg[i].sem = xSemaphoreCreateBinary();
-			xSemaphoreGive(wdawg[i].sem); //allows it to be taken
-  	}
+    if (mode == DEASSERTED) {
+      wdawg[i].sem = xSemaphoreCreateBinary();
+      xSemaphoreGive(wdawg[i].sem); //allows it to be taken
+    }
     wdawg[i].last_msg = 0;
   }
   
   if (mode == DEASSERTED) {
-		periph.bmscan           = &hcan3;
-	//  periph.chargcan         = &hcan2; //todo fix this
-		periph.chargcan 				= NULL;
-		periph.dcan             = &hcan1;
-		periph.hdma_sdmmc1_rx   = &hdma_sdmmc1_rx;
-		periph.hdma_sdmmc1_tx   = &hdma_sdmmc1_tx;
-		periph.hsd1             = &hsd1;
-		periph.i_adc            = &hadc1;
-		periph.tim              = &htim1;
+    periph.bmscan           = &hcan3;
+    //  periph.chargcan         = &hcan2; //todo fix this
+    periph.chargcan         = NULL;
+    periph.dcan             = &hcan1;
+    periph.hdma_sdmmc1_rx   = &hdma_sdmmc1_rx;
+    periph.hdma_sdmmc1_tx   = &hdma_sdmmc1_tx;
+    periph.hsd1             = &hsd1;
+    periph.i_adc            = &hadc1;
+    periph.tim              = &htim1;
   }
 }
 
@@ -269,7 +271,7 @@ void initBMSobject(flag_t mode) {
 ***************************************************************************/
 void task_bms_main() {
   uint8_t i = 0;
-
+  
   TickType_t time_init = 0;
 //  debug_lights(0,0,0,1);
 //  HAL_Delay(500);
@@ -285,15 +287,15 @@ void task_bms_main() {
     i++;
     //================ADC===================
 //    HAL_ADC_Start(periph.i_adc); //Start the ADC
-//		HAL_ADC_PollForConversion(periph.i_adc, 100); //read channel 12
-//		steer_angle = HAL_ADC_GetValue(periph.i_adc);
-//		HAL_ADC_PollForConversion(periph.i_adc, 100);
-//		steer_strain = HAL_ADC_GetValue(periph.i_adc);	//read channel 16
-//		HAL_ADC_Stop(periph.i_adc);
+//    HAL_ADC_PollForConversion(periph.i_adc, 100); //read channel 12
+//    steer_angle = HAL_ADC_GetValue(periph.i_adc);
+//    HAL_ADC_PollForConversion(periph.i_adc, 100);
+//    steer_strain = HAL_ADC_GetValue(periph.i_adc);  //read channel 16
+//    HAL_ADC_Stop(periph.i_adc);
     //======================================
     switch (bms.state) {
       case INIT:
-      	debug_lights(0,0,0,1);
+        debug_lights(0, 0, 0, 1);
         initBMSobject(ASSERTED);
         //TODO: do self checks
         //TODO: confirm current sense
@@ -305,7 +307,7 @@ void task_bms_main() {
         }
         break;
       case BMS_CONNECT:
-      	debug_lights(0,0,1,0);
+        debug_lights(0, 0, 1, 0);
         //establish connections with all slaves
         //send wakeup signal and poll until all slaves are connected
         while (slaves_connected() == FAILURE) {
@@ -318,34 +320,34 @@ void task_bms_main() {
         }
         break;
       case NORMAL_OP:
-      	debug_lights(0,0,1,1);
+        debug_lights(0, 0, 1, 1);
         //TODO: read from all of the sensors
         //TODO: manage passive balancing if necessary
         break;
       case ERROR_BMS:
-      	debug_lights(0,1,0,0);
+        debug_lights(0, 1, 0, 0);
         //TODO: kill all non critical tasks
-      	if (bms.fault.overall == NORMAL) {
-      		//Error has since corrected itself go back to normal operation
-      		HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //open SDC
-      		if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-						bms.state = NORMAL_OP;
-						xSemaphoreGive(bms.state_sem); //release sem
-					}
-      	} else if (bms.fault.clear == DEASSERTED) {
-      		HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_SET); //open SDC
-					send_faults();
-					vTaskDelay(SEND_ERROR_DELAY);
-      	}	else {
-      		clear_faults();
-      		if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
-						bms.state = INIT;
-						xSemaphoreGive(bms.state_sem); //release sem
-					}
-      	}
+        if (bms.fault.overall == NORMAL) {
+          //Error has since corrected itself go back to normal operation
+          HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //open SDC
+          if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+            bms.state = NORMAL_OP;
+            xSemaphoreGive(bms.state_sem); //release sem
+          }
+        } else if (bms.fault.clear == DEASSERTED) {
+          HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_SET); //open SDC
+          send_faults();
+          vTaskDelay(SEND_ERROR_DELAY);
+        } else {
+          clear_faults();
+          if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+            bms.state = INIT;
+            xSemaphoreGive(bms.state_sem); //release sem
+          }
+        }
         break;
       case SHUTDOWN:
-      	debug_lights(0,1,0,1);
+        debug_lights(0, 1, 0, 1);
         //TODO: kill all non critical tasks
         power_cmd_slaves(POWER_OFF);
         //TODO: finish all sd card writing
@@ -496,7 +498,7 @@ Success_t send_faults() {
   msg.Data[0] |= bitwise_or(FAULT_UNDERTEMP_SHIFT, FAULT_UNDERTEMP_MASK, bms.fault.undertemp);
   
   //module specific faults
-  for (i = 1; i < (NUM_SLAVES+1); i++) {
+  for (i = 1; i < (NUM_SLAVES + 1); i++) {
     //low module
     msg.Data[i] = bitwise_or(FAULT_MODL_CON_SHIFT, FAULT_MODL_CON_MASK, bms.fault.slave[x].connected);
     msg.Data[i] |= bitwise_or(FAULT_MODL_TEMP_SHIFT, FAULT_MODL_TEMP_MASK,
@@ -505,12 +507,13 @@ Success_t send_faults() {
                               bms.fault.slave[x].volt_sens);
                               
     //high module
-    if (x+1 < NUM_SLAVES) {
-    	msg.Data[i] |= bitwise_or(FAULT_MODH_CON_SHIFT, FAULT_MODH_CON_MASK, bms.fault.slave[x+1].connected);
-			msg.Data[i] |= bitwise_or(FAULT_MODH_TEMP_SHIFT, FAULT_MODH_TEMP_MASK,
-																bms.fault.slave[x+1].temp_sens);
-			msg.Data[i] |= bitwise_or(FAULT_MODH_VOLT_SHIFT, FAULT_MODH_VOLT_MASK,
-																bms.fault.slave[x+1].volt_sens);
+    if (x + 1 < NUM_SLAVES) {
+      msg.Data[i] |= bitwise_or(FAULT_MODH_CON_SHIFT, FAULT_MODH_CON_MASK,
+                                bms.fault.slave[x + 1].connected);
+      msg.Data[i] |= bitwise_or(FAULT_MODH_TEMP_SHIFT, FAULT_MODH_TEMP_MASK,
+                                bms.fault.slave[x + 1].temp_sens);
+      msg.Data[i] |= bitwise_or(FAULT_MODH_VOLT_SHIFT, FAULT_MODH_VOLT_MASK,
+                                bms.fault.slave[x + 1].volt_sens);
     }
   }
   

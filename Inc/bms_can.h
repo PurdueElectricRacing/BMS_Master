@@ -12,7 +12,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 //Constants
-#define NO_MESSAGES_RECV			0
+#define NO_MESSAGES_RECV      0
 
 //ID Master -> Slave
 #define ID_BMS_WAKEUP         0x600
@@ -36,7 +36,7 @@
 #define WDAWG_TIMEOUT   (6000 / portTICK_RATE_MS) / NUM_SLAVES
 
 //Length
-#define WDAWG_LENGTH		1
+#define WDAWG_LENGTH    1
 
 //TX RTOS
 #define BMSCAN_TX_STACK_SIZE   128

@@ -547,12 +547,12 @@ void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
   if(htim_pwm->Instance==TIM1)
   {
   /* USER CODE BEGIN TIM1_MspInit 0 */
-
+    
   /* USER CODE END TIM1_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_TIM1_CLK_ENABLE();
   /* USER CODE BEGIN TIM1_MspInit 1 */
-
+    
   /* USER CODE END TIM1_MspInit 1 */
   }
 
@@ -565,7 +565,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
   if(htim->Instance==TIM1)
   {
   /* USER CODE BEGIN TIM1_MspPostInit 0 */
-
+    
   /* USER CODE END TIM1_MspPostInit 0 */
   
     __HAL_RCC_GPIOE_CLK_ENABLE();
@@ -580,7 +580,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
     HAL_GPIO_Init(Fan_PWM_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN TIM1_MspPostInit 1 */
-
+    
   /* USER CODE END TIM1_MspPostInit 1 */
   }
 
@@ -598,12 +598,12 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
   if(htim_pwm->Instance==TIM1)
   {
   /* USER CODE BEGIN TIM1_MspDeInit 0 */
-
+    
   /* USER CODE END TIM1_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_TIM1_CLK_DISABLE();
   /* USER CODE BEGIN TIM1_MspDeInit 1 */
-
+    
   /* USER CODE END TIM1_MspDeInit 1 */
   }
 
@@ -622,7 +622,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspInit 0 */
-
+    
   /* USER CODE END USART3_MspInit 0 */
     /* Peripheral clock enable */
     __HAL_RCC_USART3_CLK_ENABLE();
@@ -640,7 +640,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* USER CODE BEGIN USART3_MspInit 1 */
-
+    
   /* USER CODE END USART3_MspInit 1 */
   }
 
@@ -659,7 +659,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   if(huart->Instance==USART3)
   {
   /* USER CODE BEGIN USART3_MspDeInit 0 */
-
+    
   /* USER CODE END USART3_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_USART3_CLK_DISABLE();
@@ -671,7 +671,7 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOD, STLK_RX_Pin|STLK_TX_Pin);
 
   /* USER CODE BEGIN USART3_MspDeInit 1 */
-
+    
   /* USER CODE END USART3_MspDeInit 1 */
   }
 

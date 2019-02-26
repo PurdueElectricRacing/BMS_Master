@@ -94,27 +94,27 @@ void task_Slave_WDawg() {
   while (1) {
     time_init = xTaskGetTickCount();
     i =  (i + 1) % NUM_SLAVES;
-		if (xSemaphoreTake(wdawg[i].sem, TIMEOUT) == pdPASS) {
-			//check if past the timeout
-			if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-				curr_time = xTaskGetTickCount();
-				if ((curr_time - wdawg[i].last_msg > WDAWG_TIMEOUT)
-						|| wdawg[i].last_msg == NO_MESSAGES_RECV) { //if no messages received don't check
-					//this slave is now not detected
-					bms.fault.slave[i].connected = FAULTED;
-				} else {
-					bms.fault.slave[i].connected = NORMAL;
-				}
-				xSemaphoreGive(bms.fault.sem);
-			}
-			xSemaphoreGive(wdawg[i].sem);
-		} else {
-			//semaphore not acquired
-		}
-		if (bms.state == NORMAL_OP) {
-			xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
-		}
-
+    if (xSemaphoreTake(wdawg[i].sem, TIMEOUT) == pdPASS) {
+      //check if past the timeout
+      if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+        curr_time = xTaskGetTickCount();
+        if ((curr_time - wdawg[i].last_msg > WDAWG_TIMEOUT)
+            || wdawg[i].last_msg == NO_MESSAGES_RECV) { //if no messages received don't check
+          //this slave is now not detected
+          bms.fault.slave[i].connected = FAULTED;
+        } else {
+          bms.fault.slave[i].connected = NORMAL;
+        }
+        xSemaphoreGive(bms.fault.sem);
+      }
+      xSemaphoreGive(wdawg[i].sem);
+    } else {
+      //semaphore not acquired
+    }
+    if (bms.state == NORMAL_OP) {
+      xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
+    }
+    
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
 }

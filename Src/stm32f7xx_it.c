@@ -190,11 +190,11 @@ void CAN1_RX0_IRQHandler(void)
   HAL_CAN_IRQHandler(&hcan1);
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
   CanRxMsgTypeDef rx;
-	CAN_RxHeaderTypeDef header;
-	HAL_CAN_GetRxMessage(&hcan1, 0, &header, rx.Data);
-	rx.DLC = header.DLC;
-	rx.StdId = header.StdId;
-	xQueueSendFromISR(bms.q_rx_dcan, &rx, 0);
+  CAN_RxHeaderTypeDef header;
+  HAL_CAN_GetRxMessage(&hcan1, 0, &header, rx.Data);
+  rx.DLC = header.DLC;
+  rx.StdId = header.StdId;
+  xQueueSendFromISR(bms.q_rx_dcan, &rx, 0);
   /* USER CODE END CAN1_RX0_IRQn 1 */
 }
 
@@ -218,11 +218,11 @@ void CAN1_RX1_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM3_IRQn 0 */
-
+  
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
-
+  
   /* USER CODE END TIM3_IRQn 1 */
 }
 
@@ -232,15 +232,15 @@ void TIM3_IRQHandler(void)
 void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
-
+  
   /* USER CODE END EXTI15_10_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
   //Power Loss go to shutdown state!
   if (xSemaphoreTakeFromISR(bms.state_sem, NULL) == pdPASS) {
-		bms.state = SHUTDOWN;
-		xSemaphoreGiveFromISR(bms.state_sem, NULL); //release sem
-	}
+    bms.state = SHUTDOWN;
+    xSemaphoreGiveFromISR(bms.state_sem, NULL); //release sem
+  }
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
 
@@ -250,11 +250,11 @@ void EXTI15_10_IRQHandler(void)
 void DMA2_Stream3_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
-
+  
   /* USER CODE END DMA2_Stream3_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_sdmmc1_rx);
   /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
-
+  
   /* USER CODE END DMA2_Stream3_IRQn 1 */
 }
 
@@ -264,11 +264,11 @@ void DMA2_Stream3_IRQHandler(void)
 void DMA2_Stream6_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
-
+  
   /* USER CODE END DMA2_Stream6_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_sdmmc1_tx);
   /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
-
+  
   /* USER CODE END DMA2_Stream6_IRQn 1 */
 }
 
@@ -278,24 +278,24 @@ void DMA2_Stream6_IRQHandler(void)
 void CAN3_RX0_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN3_RX0_IRQn 0 */
-
+  
   /* USER CODE END CAN3_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan3);
   /* USER CODE BEGIN CAN3_RX0_IRQn 1 */
   CanRxMsgTypeDef rx;
-	CAN_RxHeaderTypeDef header;
-	HAL_CAN_GetRxMessage(&hcan3, 0, &header, rx.Data);
-	rx.DLC = header.DLC;
-	rx.StdId = header.StdId;
-	xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
-
-	//master watchdawg task
-	//first data byte always corresponds to the slave ID
-	if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].sem, NULL) == pdPASS) {
-		//semaphore successfully taken
-		wdawg[rx.Data[0]].last_msg = xTaskGetTickCountFromISR();
-		xSemaphoreGiveFromISR(wdawg[rx.Data[0]].sem, NULL); //give the sem back
-	}
+  CAN_RxHeaderTypeDef header;
+  HAL_CAN_GetRxMessage(&hcan3, 0, &header, rx.Data);
+  rx.DLC = header.DLC;
+  rx.StdId = header.StdId;
+  xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
+  
+  //master watchdawg task
+  //first data byte always corresponds to the slave ID
+  if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].sem, NULL) == pdPASS) {
+    //semaphore successfully taken
+    wdawg[rx.Data[0]].last_msg = xTaskGetTickCountFromISR();
+    xSemaphoreGiveFromISR(wdawg[rx.Data[0]].sem, NULL); //give the sem back
+  }
   /* USER CODE END CAN3_RX0_IRQn 1 */
 }
 
@@ -305,24 +305,24 @@ void CAN3_RX0_IRQHandler(void)
 void CAN3_RX1_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN3_RX1_IRQn 0 */
-
+  
   /* USER CODE END CAN3_RX1_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan3);
   /* USER CODE BEGIN CAN3_RX1_IRQn 1 */
   CanRxMsgTypeDef rx;
-	CAN_RxHeaderTypeDef header;
-	HAL_CAN_GetRxMessage(&hcan3, 0, &header, rx.Data);
-	rx.DLC = header.DLC;
-	rx.StdId = header.StdId;
-	xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
-
-	//master watchdawg task
-	//first data byte always corresponds to the slave ID
-	if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].sem, NULL) == pdPASS) {
-		//semaphore successfully taken
-		wdawg[rx.Data[0]].last_msg = xTaskGetTickCountFromISR();
-		xSemaphoreGiveFromISR(wdawg[rx.Data[0]].sem, NULL); //give the sem back
-	}
+  CAN_RxHeaderTypeDef header;
+  HAL_CAN_GetRxMessage(&hcan3, 0, &header, rx.Data);
+  rx.DLC = header.DLC;
+  rx.StdId = header.StdId;
+  xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
+  
+  //master watchdawg task
+  //first data byte always corresponds to the slave ID
+  if (xSemaphoreTakeFromISR(wdawg[rx.Data[0]].sem, NULL) == pdPASS) {
+    //semaphore successfully taken
+    wdawg[rx.Data[0]].last_msg = xTaskGetTickCountFromISR();
+    xSemaphoreGiveFromISR(wdawg[rx.Data[0]].sem, NULL); //give the sem back
+  }
   /* USER CODE END CAN3_RX1_IRQn 1 */
 }
 
