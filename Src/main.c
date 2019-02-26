@@ -80,8 +80,8 @@ CAN_HandleTypeDef hcan1;
 CAN_HandleTypeDef hcan3;
 
 SD_HandleTypeDef hsd1;
-DMA_HandleTypeDef hdma_sdmmc1_tx;
 DMA_HandleTypeDef hdma_sdmmc1_rx;
+DMA_HandleTypeDef hdma_sdmmc1_tx;
 
 SPI_HandleTypeDef hspi1;
 
@@ -101,10 +101,10 @@ static void MX_DMA_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_CAN1_Init(void);
-static void MX_SDMMC1_SD_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_CAN3_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_SDMMC1_SD_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -148,10 +148,10 @@ int main(void)
   MX_USART3_UART_Init();
   MX_ADC1_Init();
   MX_CAN1_Init();
-  MX_SDMMC1_SD_Init();
   MX_SPI1_Init();
   MX_CAN3_Init();
   MX_TIM1_Init();
+  MX_SDMMC1_SD_Init();
   /* USER CODE BEGIN 2 */
   bms_can_filter_init(&hcan3);
   HAL_CAN_Start(&hcan3);
@@ -616,12 +616,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : USER_Btn_Pin */
-  GPIO_InitStruct.Pin = USER_Btn_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pins : WDI_Pin SDC_BMS_FAULT_Pin LPM_Pin */
   GPIO_InitStruct.Pin = WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -670,11 +664,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : DETECT_SDIO_Pin */
-  GPIO_InitStruct.Pin = DETECT_SDIO_Pin;
+  /*Configure GPIO pin : SD_DETECT_Pin */
+  GPIO_InitStruct.Pin = SD_DETECT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(DETECT_SDIO_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(SD_DETECT_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

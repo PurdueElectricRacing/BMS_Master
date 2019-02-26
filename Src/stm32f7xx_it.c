@@ -75,8 +75,8 @@
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan3;
-extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
+extern DMA_HandleTypeDef hdma_sdmmc1_tx;
 extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN EV */
@@ -227,6 +227,24 @@ void TIM3_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line[15:10] interrupts.
+  */
+void EXTI15_10_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI15_10_IRQn 0 */
+
+  /* USER CODE END EXTI15_10_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+  /* USER CODE BEGIN EXTI15_10_IRQn 1 */
+  //Power Loss go to shutdown state!
+  if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+		bms.state = SHUTDOWN;
+		xSemaphoreGive(bms.state_sem); //release sem
+	}
+  /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA2 stream3 global interrupt.
   */
 void DMA2_Stream3_IRQHandler(void)
@@ -234,7 +252,7 @@ void DMA2_Stream3_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream3_IRQn 0 */
 
   /* USER CODE END DMA2_Stream3_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_sdmmc1_tx);
+  HAL_DMA_IRQHandler(&hdma_sdmmc1_rx);
   /* USER CODE BEGIN DMA2_Stream3_IRQn 1 */
 
   /* USER CODE END DMA2_Stream3_IRQn 1 */
@@ -248,7 +266,7 @@ void DMA2_Stream6_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
 
   /* USER CODE END DMA2_Stream6_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_sdmmc1_rx);
+  HAL_DMA_IRQHandler(&hdma_sdmmc1_tx);
   /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
 
   /* USER CODE END DMA2_Stream6_IRQn 1 */

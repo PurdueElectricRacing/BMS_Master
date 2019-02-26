@@ -9,8 +9,6 @@
 #define SD_CARD_H_
 
 #include "bms.h"
-#include "sd_diskio.h"
-#include "ff_gen_drv.h"
 
 #define SD_CARD_RATE       500 / portTICK_RATE_MS // @matt
 
