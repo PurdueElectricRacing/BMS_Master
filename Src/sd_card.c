@@ -68,6 +68,7 @@ void init_sd_card(){
 	FATFS SDFatFs;  /* File system object for SD disk logical drive */
 	char SDPath[4]; /* SD disk logical drive path */
 	uint8_t workBuffer[_MAX_SS];
+
 	if(FATFS_LinkDriver(&SD_Driver, SDPath) == 0){
 	    if(f_mount(&SDFatFs, (TCHAR const*)SDPath, 0) != FR_OK)
 	    {
