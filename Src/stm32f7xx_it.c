@@ -237,9 +237,9 @@ void EXTI15_10_IRQHandler(void)
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
   //Power Loss go to shutdown state!
-  if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
+  if (xSemaphoreTakeFromISR(bms.state_sem, NULL) == pdPASS) {
 		bms.state = SHUTDOWN;
-		xSemaphoreGive(bms.state_sem); //release sem
+		xSemaphoreGiveFromISR(bms.state_sem, NULL); //release sem
 	}
   /* USER CODE END EXTI15_10_IRQn 1 */
 }
