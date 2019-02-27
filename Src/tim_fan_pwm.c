@@ -79,5 +79,5 @@ void master_tim_pwm_set_duty(TIM_HandleTypeDef* htim, uint32_t duty_percent)
 {
 	uint32_t duty = TIM_PWM_PERIOD * duty_percent / 100;
 	//change duty cycle based on what the fan needs
-	__HAL_TIM_SET_COMPARE(htim1, TIM_CHANNEL_1, duty);
+	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, duty);
 }

@@ -12,4 +12,8 @@
 
 #define TIM_PWM_PERIOD		10000
 
+void master_tim_pwm_start(TIM_HandleTypeDef* htim);
+void master_tim_pwm_stop(TIM_HandleTypeDef* htim);
+void master_tim_pwm_set_duty(TIM_HandleTypeDef* htim, uint32_t duty_percent);
+
 #endif /* TIM_FAN_PWM_H_ */

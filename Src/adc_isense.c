@@ -85,12 +85,13 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	//TODO: might need to get data from ADC_CDR register
 	//		instead of ADC_DR, since we in dual ADC mode
 	//this is kinda sketch
-	ADC_Common_TypeDef * common_hadc = ADC123_COMMON;
-	uint32_t adc_value = common_hadc->CDR;
-	uint16_t adc1_val = adc_value;  //lower 16bit is adc1, truncate upper 16bit
-	uint16_t adc2_val = adc_value >> 16;
+//	ADC_Common_TypeDef * common_hadc = ADC123_COMMON;
+//	uint32_t adc_value = common_hadc->CDR;
+	adc1_val = adc_value;  //lower 16bit is adc1, truncate upper 16bit
+//	adc2_val = adc_value >> 16;
 
 	//TODO: send data somewhere for processing
+	//		send data using queues through freeRTOS
 
 	//TODO: delay if needed
 
