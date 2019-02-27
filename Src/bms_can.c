@@ -55,6 +55,18 @@ void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
   FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
   HAL_CAN_ConfigFilter(hcan, &FilterConf);
+
+  FilterConf.FilterIdHigh =         ID_SLAVE_TEMP << 5;
+	FilterConf.FilterIdLow =          ID_SLAVE_VOLT << 5;
+	FilterConf.FilterMaskIdHigh =     0;
+	FilterConf.FilterMaskIdLow =      0;
+	FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
+	FilterConf.FilterBank = 1;
+	FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
+	FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
+	FilterConf.FilterActivation = ENABLE;
+  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+
 }
 
 /***************************************************************************
@@ -319,6 +331,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   Success_t status = SUCCESSFUL;
   uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
   uint8_t slave = rx->Data[0];
+  uint16_t max_volt = 0;
   fault_t overvolt = NORMAL;
   fault_t undervolt = NORMAL;
   flag_t flag = DEASSERTED;
@@ -328,6 +341,9 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
   
   //safety check
+  max_volt = max(max(volt1, volt2), volt3);
+
+
   //overvolt check
   if (volt1 > bms.params.volt_high_lim ||
       volt2 > bms.params.volt_high_lim ||

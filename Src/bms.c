@@ -201,10 +201,13 @@ void initBMSobject(flag_t mode) {
   bms.fault.overall = NORMAL;
   
   bms.macros.soc = 0;
-  bms.macros.high_temp = 0;
+  bms.macros.high_temp = TEMP_LOW_LIMIT;
   bms.macros.pack_i = 0;
   bms.macros.pack_volt = 0;
   bms.macros.soh = 0;
+  bms.macros.low_temp = TEMP_HIGH_LIMIT;
+  bms.macros.high_volt = VOLT_LOW_LIMIT;
+  bms.macros.low_volt = VOLT_HIGH_LIMIT;
   
   for (i = 0; i < NUM_SLAVES; i++) {
     bms.fault.slave[i].connected = FAULTED;

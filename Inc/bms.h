@@ -184,6 +184,9 @@ typedef struct {
   uint16_t pack_volt; //voltage
   int16_t pack_i;     //current
   int16_t high_temp;  //temperature
+  int16_t low_temp;
+  uint16_t high_volt;
+  uint16_t low_volt;
 } macros_t;
 
 //Main BMS structure that holds can handles and all of the queues
