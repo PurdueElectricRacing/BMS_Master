@@ -51,6 +51,7 @@
 #define HEARTBEAT_RATE      750 / portTICK_RATE_MS
 #define BMS_MAIN_RATE       20 / portTICK_RATE_MS
 #define ERROR_CHECK_RATE    500 / portTICK_RATE_MS
+#define ADC_ISENSE_RATE    500 / portTICK_RATE_MS
 
 #define POWER_LOSS_PIN      10
 
@@ -198,6 +199,7 @@ typedef struct {
   QueueHandle_t     q_tx_dcan;
   QueueHandle_t     q_rx_chargcan;
   QueueHandle_t     q_tx_chargcan;
+  QueueHandel_t		q_adc_isense;
   
   params_t          params;
   bmsfaults_t       fault;
