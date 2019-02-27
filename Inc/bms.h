@@ -18,6 +18,8 @@
 #include "main.h"
 #include "bms_can.h"
 #include "dcan.h"
+#include "adc_isense.h"
+#include "tim_fan_pwm.h"
 
 #define NUM_SLAVES        1 //how many slaves are hooked up to the system
 #define NUM_VTAPS         6 //number of voltage taps per module
@@ -148,6 +150,8 @@ typedef struct {
   fault_t undervolt;    //was there an under volt
   fault_t overtemp;     //are any cells over temp?
   fault_t undertemp;
+  fault_t DOC;			//discharge over current
+  fault_t COC;			//charge over current
   slave_faults slave[NUM_SLAVES];
   SemaphoreHandle_t sem;
 } bmsfaults_t;
