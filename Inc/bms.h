@@ -199,7 +199,6 @@ typedef struct {
   QueueHandle_t     q_tx_dcan;
   QueueHandle_t     q_rx_chargcan;
   QueueHandle_t     q_tx_chargcan;
-  QueueHandel_t		q_adc_isense;
   
   params_t          params;
   bmsfaults_t       fault;
