@@ -26,9 +26,8 @@
 *     Function Description: Get ADC value when conversion finish and
 *     and restart after a time delay
 ***************************************************************************/
-void master_tim_pwm_start(TIM_HandleTypeDef* htim)
-{
-	HAL_TIM_PWM_Start(htim, TIM_CHANNEL_1);
+void master_tim_pwm_start(TIM_HandleTypeDef* htim) {
+  HAL_TIM_PWM_Start(htim, TIM_CHANNEL_1);
 }
 
 /***************************************************************************
@@ -50,9 +49,8 @@ void master_tim_pwm_start(TIM_HandleTypeDef* htim)
 *     Function Description: Get ADC value when conversion finish and
 *     and restart after a time delay
 ***************************************************************************/
-void master_tim_pwm_stop(TIM_HandleTypeDef* htim)
-{
-	HAL_TIM_PWM_Stop(htim, TIM_CHANNEL_1);
+void master_tim_pwm_stop(TIM_HandleTypeDef* htim) {
+  HAL_TIM_PWM_Stop(htim, TIM_CHANNEL_1);
 }
 
 /***************************************************************************
@@ -75,9 +73,8 @@ void master_tim_pwm_stop(TIM_HandleTypeDef* htim)
 *     Function Description: Change duty cycle of fan pwm signal for
 *     controlling fan speed
 ***************************************************************************/
-void master_tim_pwm_set_duty(TIM_HandleTypeDef* htim, uint32_t duty_percent)
-{
-	uint32_t duty = TIM_PWM_PERIOD * duty_percent / 100;
-	//change duty cycle based on what the fan needs
-	__HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, duty);
+void master_tim_pwm_set_duty(TIM_HandleTypeDef* htim, uint32_t duty_percent) {
+  uint32_t duty = TIM_PWM_PERIOD * duty_percent / 100;
+  //change duty cycle based on what the fan needs
+  __HAL_TIM_SET_COMPARE(htim, TIM_CHANNEL_1, duty);
 }

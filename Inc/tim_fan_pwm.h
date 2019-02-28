@@ -10,7 +10,7 @@
 
 #include "stm32f7xx_hal.h"
 
-#define TIM_PWM_PERIOD		10000
+#define TIM_PWM_PERIOD    10000
 
 void master_tim_pwm_start(TIM_HandleTypeDef* htim);
 void master_tim_pwm_stop(TIM_HandleTypeDef* htim);

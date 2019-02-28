@@ -33,10 +33,10 @@
 #define LIMIT_VOLT_LOW    25000     //2.5 volts
 #define LIMIT_DISCHARG    3000      //300 amps
 #define LIMIT_CHARG       200       //20 amps
-#define VOLT_LOW_IMPOS		0					//0 volts (might be bad for LI-ion)
-#define VOLT_HIGH_IMPOS		0xFFFF		//6.3 volts
-#define TEMP_HIGH_IMPOS		0x7FFF		//3200 degrees
-#define TEMP_LOW_IMPOS		0x8000		//-3200 degrees
+#define VOLT_LOW_IMPOS    0         //0 volts (might be bad for LI-ion)
+#define VOLT_HIGH_IMPOS   0xFFFF    //6.3 volts
+#define TEMP_HIGH_IMPOS   0x7FFF    //3200 degrees
+#define TEMP_LOW_IMPOS    0x8000    //-3200 degrees
 
 //Delays
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
@@ -159,8 +159,8 @@ typedef struct {
   fault_t undervolt;    //was there an under volt
   fault_t overtemp;     //are any cells over temp?
   fault_t undertemp;
-  fault_t DOC;			//discharge over current
-  fault_t COC;			//charge over current
+  fault_t DOC;      //discharge over current
+  fault_t COC;      //charge over current
   slave_faults slave[NUM_SLAVES];
   SemaphoreHandle_t sem;
 } bmsfaults_t;
@@ -191,14 +191,14 @@ typedef struct {
 } params_t;
 
 typedef struct {
-	uint8_t index[2];
-	uint16_t val;
-}cell_volt_t;
+  uint8_t index[2];
+  uint16_t val;
+} cell_volt_t;
 
 typedef struct {
-	uint8_t index[2];
-	int16_t val;
-}cell_temp_t;
+  uint8_t index[2];
+  int16_t val;
+} cell_temp_t;
 
 typedef struct {
   //todo: add a semaphore
@@ -210,7 +210,7 @@ typedef struct {
   cell_temp_t low_temp;
   cell_volt_t high_volt;
   cell_volt_t low_volt;
-
+  
   SemaphoreHandle_t sem;
 } macros_t;
 

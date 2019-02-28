@@ -51,36 +51,35 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_tim.h"
- 
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-TIM_HandleTypeDef        htim3; 
+TIM_HandleTypeDef        htim3;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
 /**
-  * @brief  This function configures the TIM3 as a time base source. 
-  *         The time source is configured  to have 1ms time base with a dedicated 
-  *         Tick interrupt priority. 
+  * @brief  This function configures the TIM3 as a time base source.
+  *         The time source is configured  to have 1ms time base with a dedicated
+  *         Tick interrupt priority.
   * @note   This function is called  automatically at the beginning of program after
-  *         reset by HAL_Init() or at any time when clock is configured, by HAL_RCC_ClockConfig(). 
+  *         reset by HAL_Init() or at any time when clock is configured, by HAL_RCC_ClockConfig().
   * @param  TickPriority: Tick interrupt priority.
   * @retval HAL status
   */
-HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
-{
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
   RCC_ClkInitTypeDef    clkconfig;
   uint32_t              uwTimclock = 0;
   uint32_t              uwPrescalerValue = 0;
   uint32_t              pFLatency;
   
   /*Configure the TIM3 IRQ priority */
-  HAL_NVIC_SetPriority(TIM3_IRQn, TickPriority ,0); 
+  HAL_NVIC_SetPriority(TIM3_IRQn, TickPriority, 0);
   
   /* Enable the TIM3 global Interrupt */
-  HAL_NVIC_EnableIRQ(TIM3_IRQn); 
+  HAL_NVIC_EnableIRQ(TIM3_IRQn);
   
   /* Enable TIM3 clock */
   __HAL_RCC_TIM3_CLK_ENABLE();
@@ -90,7 +89,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   
   /* Compute TIM3 clock */
   uwTimclock = HAL_RCC_GetPCLK1Freq();
-   
+  
   /* Compute the prescaler value to have TIM3 counter clock equal to 1MHz */
   uwPrescalerValue = (uint32_t) ((uwTimclock / 1000000) - 1);
   
@@ -107,8 +106,7 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   htim3.Init.Prescaler = uwPrescalerValue;
   htim3.Init.ClockDivision = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  if(HAL_TIM_Base_Init(&htim3) == HAL_OK)
-  {
+  if (HAL_TIM_Base_Init(&htim3) == HAL_OK) {
     /* Start the TIM time Base generation in interrupt mode */
     return HAL_TIM_Base_Start_IT(&htim3);
   }
@@ -123,10 +121,9 @@ HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
   * @param  None
   * @retval None
   */
-void HAL_SuspendTick(void)
-{
+void HAL_SuspendTick(void) {
   /* Disable TIM3 update Interrupt */
-  __HAL_TIM_DISABLE_IT(&htim3, TIM_IT_UPDATE);                                                  
+  __HAL_TIM_DISABLE_IT(&htim3, TIM_IT_UPDATE);
 }
 
 /**
@@ -135,8 +132,7 @@ void HAL_SuspendTick(void)
   * @param  None
   * @retval None
   */
-void HAL_ResumeTick(void)
-{
+void HAL_ResumeTick(void) {
   /* Enable TIM3 Update interrupt */
   __HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE);
 }

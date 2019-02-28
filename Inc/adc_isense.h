@@ -12,9 +12,9 @@
 #include "stm32f7xx_hal_adc.h"
 #include "bms.h"
 
-#define ISENSE_CHANNEL_1	75
-#define ISENSE_CHANNEL_2	500
-#define ISENSE_MAX			4095
+#define ISENSE_CHANNEL_1  75
+#define ISENSE_CHANNEL_2  500
+#define ISENSE_MAX      4095
 
 void master_adc_isense_start(ADC_HandleTypeDef* hadc);
 void master_adc_isense_stop(ADC_HandleTypeDef* hadc);
