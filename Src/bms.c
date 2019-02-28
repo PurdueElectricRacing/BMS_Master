@@ -530,8 +530,8 @@ Success_t send_faults() {
   msg.StdId = ID_MASTER_ERROR_MSG;
   
   //macro faults
-  msg.Data[0] = bitwise_or(FAULT_CHARGE_EN_SHIFT, FAULT_CHARGE_EN_MASK, bms.fault.charg_en);
-  msg.Data[0] |= bitwise_or(FAULT_DISCHARGE_EN_SHIFT, FAULT_DISCHARGE_EN_MASK, bms.fault.discharg_en);
+  msg.Data[0] = bitwise_or(FAULT_CHARGE_EN_SHIFT, FAULT_CHARGE_EN_MASK, bms.fault.COC);
+  msg.Data[0] |= bitwise_or(FAULT_DISCHARGE_EN_SHIFT, FAULT_DISCHARGE_EN_MASK, bms.fault.DOC);
   msg.Data[0] |= bitwise_or(FAULT_OVERTEMP_SHIFT, FAULT_OVERTEMP_MASK, bms.fault.overtemp);
   msg.Data[0] |= bitwise_or(FAULT_OVERVOLT_SHIFT, FAULT_OVERVOLT_MASK, bms.fault.overvolt);
   msg.Data[0] |= bitwise_or(FAULT_UNDERVOLT_SHIFT, FAULT_UNDERVOLT_MASK, bms.fault.undervolt);
