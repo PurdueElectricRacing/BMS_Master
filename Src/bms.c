@@ -9,6 +9,9 @@
 uint16_t steer_angle = 0;
 uint16_t steer_strain = 0;
 
+Success_t temp_probe();
+Success_t volt_probe();
+
 /***************************************************************************
 *
 *     Function Information
@@ -65,6 +68,12 @@ void task_error_check() {
   while (1) {
     time_init = xTaskGetTickCount();
     fault = NORMAL;
+
+    //find the high/low voltage
+    volt_probe();
+    //find the high/low temp
+    temp_probe();
+
     if (bms.state == NORMAL_OP || bms.state == ERROR_BMS) {
       if (bms.fault.charg_en == FAULTED ||
           bms.fault.discharg_en == FAULTED ||
@@ -173,10 +182,12 @@ void initBMSobject(flag_t mode) {
     bms.state_sem = xSemaphoreCreateBinary();
     bms.params.sem = xSemaphoreCreateBinary();
     bms.fault.sem = xSemaphoreCreateBinary();
+    bms.macros.sem = xSemaphoreCreateBinary();
     
     xSemaphoreGive(bms.state_sem);
     xSemaphoreGive(bms.fault.sem);
     xSemaphoreGive(bms.params.sem);
+    xSemaphoreGive(bms.macros.sem);
   }
   
   //TODO read these limits off of the SD Card maybe?
@@ -201,13 +212,22 @@ void initBMSobject(flag_t mode) {
   bms.fault.overall = NORMAL;
   
   bms.macros.soc = 0;
-  bms.macros.high_temp = TEMP_LOW_LIMIT;
   bms.macros.pack_i = 0;
   bms.macros.pack_volt = 0;
   bms.macros.soh = 0;
-  bms.macros.low_temp = TEMP_HIGH_LIMIT;
-  bms.macros.high_volt = VOLT_LOW_LIMIT;
-  bms.macros.low_volt = VOLT_HIGH_LIMIT;
+  bms.macros.high_temp.val = LIMIT_TEMP_LOW;
+  bms.macros.low_temp.val = LIMIT_VOLT_HIGH;
+  bms.macros.high_volt.val = LIMIT_VOLT_LOW;
+  bms.macros.low_volt.val = LIMIT_VOLT_HIGH;
+
+  bms.macros.high_temp.index[0] = 0;
+  bms.macros.high_temp.index[1] = 0;
+  bms.macros.high_volt.index[0] = 0;
+	bms.macros.high_volt.index[1] = 0;
+  bms.macros.low_temp.index[0] = 0;
+  bms.macros.low_temp.index[1] = 0;
+  bms.macros.low_volt.index[0] = 0;
+	bms.macros.low_volt.index[1] = 0;
   
   for (i = 0; i < NUM_SLAVES; i++) {
     bms.fault.slave[i].connected = FAULTED;
@@ -222,12 +242,12 @@ void initBMSobject(flag_t mode) {
     
     //initialize all vtap data
     for (x = 0; x < NUM_VTAPS; x ++) {
-      bms.vtaps.data[i][x] = 0;
-      bms.vtaps.ocv[i][x] = 0;
+      bms.vtaps.data[i][x] = VOLT_LOW_IMPOS;
+      bms.vtaps.ocv[i][x] = VOLT_LOW_IMPOS;
       bms.vtaps.ir[i][x] = 0;
     }
     for (x = 0; x < NUM_TEMP; x ++) {
-      bms.temp.data[i][x] = 0;
+      bms.temp.data[i][x] = TEMP_LOW_IMPOS;
     }
   }
   
@@ -523,6 +543,238 @@ Success_t send_faults() {
   xQueueSendToBack(bms.q_tx_bmscan, &msg, 100); //todo DCAN
   return SUCCESSFUL;
 }
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: volt_probe
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: Success status
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1.
+*
+*      Global Dependents:
+*       1. bms.volt.data
+*
+*     Function Description: goes through all the current voltages and updates
+*     the location and value of the highest/lowest cells
+***************************************************************************/
+Success_t volt_probe() {
+	Success_t status = FAILURE;
+	uint8_t i = 0;
+	uint8_t x = 0;
+	cell_volt_t temp_max;
+	cell_volt_t temp_low;
+
+	temp_max.index[0] = 0;
+	temp_max.index[1] = 0;
+	temp_max.val = VOLT_LOW_IMPOS;
+	temp_low.index[0] = 0;
+	temp_low.index[1] = 0;
+	temp_low.val = VOLT_HIGH_IMPOS;
+
+	//find the highest and lowest values
+	for (i = 0; i < NUM_SLAVES; i++) {
+		for (x = 0; x < NUM_VTAPS; x++) {
+			if (bms.vtaps.data[i][x] != VOLT_LOW_IMPOS) {
+				//valid voltage data
+				if (bms.vtaps.data[i][x] > temp_max.val) {
+					temp_max.val = bms.vtaps.data[i][x];
+					temp_max.index[0] = i;
+					temp_max.index[1] = x;
+				}
+
+				if (bms.vtaps.data[i][x] < temp_low.val) {
+					temp_low.val = bms.vtaps.data[i][x];
+					temp_low.index[0] = i;
+					temp_low.index[1] = x;
+				}
+			}
+		}
+	}
+
+	//safety check
+	//undervolt check
+	if (temp_low.val < bms.params.volt_low_lim) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.undervolt = FAULTED;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	} else {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.undervolt = NORMAL;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	if (temp_max.val > bms.params.volt_high_lim) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.overvolt = FAULTED;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	} else {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.overvolt = NORMAL;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	//update
+	if (xSemaphoreTake(bms.macros.sem, TIMEOUT) == pdPASS) {
+		status = SUCCESS;
+		bms.macros.high_volt.index[0] = temp_max.index[0];
+		bms.macros.high_volt.index[1] = temp_max.index[1];
+		bms.macros.high_volt.val = temp_max.val;
+
+		bms.macros.low_volt.index[0] = temp_low.index[0];
+		bms.macros.low_volt.index[1] = temp_low.index[1];
+		bms.macros.low_volt.val = temp_low.val;
+
+		xSemaphoreGive(bms.macros.sem);
+	} else {
+		status = FAILURE;
+	}
+
+	return status;
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: temp_probe
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: Success status
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1.
+*
+*      Global Dependents:
+*       1. bms.temp.data
+*
+*     Function Description: updates the highest/lowest temp cell and index from
+*     the array
+***************************************************************************/
+Success_t temp_probe() {
+	Success_t status = FAILURE;
+	uint8_t i = 0;
+	uint8_t x = 0;
+	cell_volt_t temp_max;
+	cell_volt_t temp_low;
+
+	temp_max.index[0] = 0;
+	temp_max.index[1] = 0;
+	temp_max.val = TEMP_LOW_IMPOS;
+	temp_low.index[0] = 0;
+	temp_low.index[1] = 0;
+	temp_low.val = TEMP_HIGH_IMPOS;
+
+	//find the highest and lowest values
+	for (i = 0; i < NUM_SLAVES; i++) {
+		for (x = 0; x < NUM_TEMP; x++) {
+			if (bms.vtaps.data[i][x] != TEMP_LOW_IMPOS) {
+				//valid temperature data
+				if (bms.temp.data[i][x] > temp_max.val) {
+					temp_max.val = bms.temp.data[i][x];
+					temp_max.index[0] = i;
+					temp_max.index[1] = x;
+				}
+
+				if (bms.temp.data[i][x] < temp_low.val) {
+					temp_low.val = bms.temp.data[i][x];
+					temp_low.index[0] = i;
+					temp_low.index[1] = x;
+				}
+			}
+		}
+	}
+
+	//safety check
+	//undervolt check
+	if (temp_low.val < bms.params.temp_low_lim) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.undertemp = FAULTED;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	} else {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.undertemp = NORMAL;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	if (temp_max.val > bms.params.temp_high_lim) {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.overtemp = FAULTED;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	} else {
+		if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
+			bms.fault.overtemp = NORMAL;
+			xSemaphoreGive(bms.fault.sem);
+		} else {
+			status = FAILURE;
+		}
+	}
+
+	//update
+	if (xSemaphoreTake(bms.macros.sem, TIMEOUT) == pdPASS) {
+		status = SUCCESS;
+		bms.macros.high_temp.index[0] = temp_max.index[0];
+		bms.macros.high_temp.index[1] = temp_max.index[1];
+		bms.macros.high_temp.val = temp_max.val;
+
+		bms.macros.low_temp.index[0] = temp_low.index[0];
+		bms.macros.low_temp.index[1] = temp_low.index[1];
+		bms.macros.low_temp.val = temp_low.val;
+
+		xSemaphoreGive(bms.macros.sem);
+	} else {
+		status = FAILURE;
+	}
+
+	return status;
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: wakeup_slaves
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: Success status
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1.
+*
+*      Global Dependents:
+*       1. q_tx_bmscan
+*
+*     Function Description: sends fault code to the GUI see CAN msg docs for
+*     more info on what each bit is representing
+***************************************************************************/
 
 void debug_lights(flag_t orange, flag_t red, flag_t green, flag_t blue) {
   if (orange == ASSERTED) {

@@ -33,6 +33,10 @@
 #define LIMIT_VOLT_LOW    25000     //2.5 volts
 #define LIMIT_DISCHARG    3000      //300 amps
 #define LIMIT_CHARG       200       //20 amps
+#define VOLT_LOW_IMPOS		0					//0 volts (might be bad for LI-ion)
+#define VOLT_HIGH_IMPOS		0xFFFF		//6.3 volts
+#define TEMP_HIGH_IMPOS		0x7FFF		//3200 degrees
+#define TEMP_LOW_IMPOS		0x8000		//-3200 degrees
 
 //Delays
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
@@ -90,6 +94,10 @@
    ({ __typeof__ (a) _a = (a); \
        __typeof__ (b) _b = (b); \
      _a > _b ? _a : _b; })
+#define min(a,b) \
+   ({ __typeof__ (a) _a = (a); \
+       __typeof__ (b) _b = (b); \
+     _a < _b ? _a : _b; })
 //used to reduce a byte to a logical value based off a specified location request
 #define bit_extract(mask, shift, byte) (byte & mask) >> shift
 #define byte_combine(msb, lsb) ((msb << 8) | lsb)
@@ -183,15 +191,27 @@ typedef struct {
 } params_t;
 
 typedef struct {
+	uint8_t index[2];
+	uint16_t val;
+}cell_volt_t;
+
+typedef struct {
+	uint8_t index[2];
+	int16_t val;
+}cell_temp_t;
+
+typedef struct {
   //todo: add a semaphore
   uint8_t soc;        //percent
   uint8_t soh;        //percent
   uint16_t pack_volt; //voltage
   int16_t pack_i;     //current
-  int16_t high_temp;  //temperature
-  int16_t low_temp;
-  uint16_t high_volt;
-  uint16_t low_volt;
+  cell_temp_t high_temp;  //temperature
+  cell_temp_t low_temp;
+  cell_volt_t high_volt;
+  cell_volt_t low_volt;
+
+  SemaphoreHandle_t sem;
 } macros_t;
 
 //Main BMS structure that holds can handles and all of the queues

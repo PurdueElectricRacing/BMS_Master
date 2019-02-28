@@ -259,46 +259,18 @@ Success_t process_temp(CanRxMsgTypeDef* rx) {
   fault_t overtemp = NORMAL;
   fault_t undertemp = NORMAL;
   flag_t flag = DEASSERTED;
+  int16_t max_temp = 0;
+  int16_t min_temp = 0;
   
   int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
   int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
   int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
   
-  //safety check
-  //overtemp check
-  if (temp1 > bms.params.temp_high_lim ||
-      temp2 > bms.params.temp_high_lim ||
-      temp3 > bms.params.temp_high_lim) {
-    overtemp = FAULTED;
-    flag = ASSERTED;
-  }
-  //undertemp check
-  if (temp1 < bms.params.temp_low_lim ||
-      temp2 < bms.params.temp_low_lim ||
-      temp3 < bms.params.temp_low_lim) {
-    undertemp = FAULTED;
-    flag = ASSERTED;
-  }
-  
-  if (flag == ASSERTED) {
-    if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-      bms.fault.overtemp = overtemp;
-      bms.fault.undertemp = undertemp;
-      xSemaphoreGive(bms.fault.sem);
-    } else {
-      status = FAILURE;
-    }
-  }
-  
-  //update the table
+  //update the table //todo check to make sure we don't go over array bounds...
   if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
     bms.temp.data[slave][loc++] = temp1;
     bms.temp.data[slave][loc++] = temp2;
     bms.temp.data[slave][loc] = temp3;
-    
-    if (bms.macros.high_temp < max(max(temp1, temp2), temp3)) {
-      bms.macros.high_temp = max(max(temp1, temp2), temp3);
-    }
     xSemaphoreGive(bms.temp.sem);
   } else {
     status = FAILURE;
@@ -332,6 +304,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
   uint8_t slave = rx->Data[0];
   uint16_t max_volt = 0;
+  uint16_t min_volt = 0;
   fault_t overvolt = NORMAL;
   fault_t undervolt = NORMAL;
   flag_t flag = DEASSERTED;
@@ -340,36 +313,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   uint16_t volt2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
   uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
   
-  //safety check
-  max_volt = max(max(volt1, volt2), volt3);
-
-
-  //overvolt check
-  if (volt1 > bms.params.volt_high_lim ||
-      volt2 > bms.params.volt_high_lim ||
-      volt3 > bms.params.volt_high_lim) {
-    overvolt = FAULTED;
-    flag = ASSERTED;
-  }
-  //undervolt check
-  if (volt1 < bms.params.volt_low_lim ||
-      volt2 < bms.params.volt_low_lim ||
-      volt3 < bms.params.volt_low_lim) {
-    undervolt = FAULTED;
-    flag = ASSERTED;
-  }
-  
-  if (flag == ASSERTED) {
-    if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-      bms.fault.overvolt = overvolt;
-      bms.fault.undervolt = undervolt;
-      xSemaphoreGive(bms.fault.sem);
-    } else {
-      status = FAILURE;
-    }
-  }
-  
-  //update the table
+  //update the table //todo check to make sure we don't go over array bounds...
   if (xSemaphoreTake(bms.vtaps.sem, TIMEOUT) == pdPASS) {
     bms.vtaps.data[slave][loc++] = volt1;
     bms.vtaps.data[slave][loc++] = volt2;
@@ -378,7 +322,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   } else {
     status = FAILURE;
   }
-  
+
   return status;
 }
 
