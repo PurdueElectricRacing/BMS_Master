@@ -73,11 +73,11 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern ADC_HandleTypeDef hadc1;
 extern CAN_HandleTypeDef hcan1;
 extern CAN_HandleTypeDef hcan3;
 extern DMA_HandleTypeDef hdma_sdmmc1_rx;
 extern DMA_HandleTypeDef hdma_sdmmc1_tx;
-extern SD_HandleTypeDef hsd1;
 extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN EV */
@@ -181,6 +181,20 @@ void DebugMon_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles ADC1, ADC2 and ADC3 global interrupts.
+  */
+void ADC_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC_IRQn 0 */
+
+  /* USER CODE END ADC_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc1);
+  /* USER CODE BEGIN ADC_IRQn 1 */
+
+  /* USER CODE END ADC_IRQn 1 */
+}
+
+/**
   * @brief This function handles CAN1 RX0 interrupts.
   */
 void CAN1_RX0_IRQHandler(void)
@@ -243,20 +257,6 @@ void EXTI15_10_IRQHandler(void)
     xSemaphoreGiveFromISR(bms.state_sem, NULL); //release sem
   }
   /* USER CODE END EXTI15_10_IRQn 1 */
-}
-
-/**
-  * @brief This function handles SDMMC1 global interrupt.
-  */
-void SDMMC1_IRQHandler(void)
-{
-  /* USER CODE BEGIN SDMMC1_IRQn 0 */
-
-  /* USER CODE END SDMMC1_IRQn 0 */
-  HAL_SD_IRQHandler(&hsd1);
-  /* USER CODE BEGIN SDMMC1_IRQn 1 */
-
-  /* USER CODE END SDMMC1_IRQn 1 */
 }
 
 /**

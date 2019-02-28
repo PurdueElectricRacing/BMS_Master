@@ -52,11 +52,14 @@
 #define BMS_MAIN_PRIORITY           3
 #define ERROR_CHECK_STACK_SIZE      128
 #define ERROR_CHECK_RATE_PRIORITY   1
+#define ADC_STACK_SIZE				128
+#define ADC_PRIORITY				1
 
 #define HEARTBEAT_RATE      750 / portTICK_RATE_MS
 #define BMS_MAIN_RATE       20 / portTICK_RATE_MS
 #define ERROR_CHECK_RATE    500 / portTICK_RATE_MS
-#define ADC_ISENSE_RATE    500 / portTICK_RATE_MS
+#define ADC_ISENSE_RATE    	50 / portTICK_RATE_MS
+#define FAN_PWM_RATE		100 / portTICK_RATE_MS
 
 #define POWER_LOSS_PIN      10
 
@@ -202,11 +205,16 @@ typedef struct {
 }cell_temp_t;
 
 typedef struct {
+	int32_t ch1_low_current;
+	int32_t ch2_high_current;
+}pack_i_t;
+
+typedef struct {
   //todo: add a semaphore
   uint8_t soc;        //percent
   uint8_t soh;        //percent
   uint16_t pack_volt; //voltage
-  int16_t pack_i;     //current
+  pack_i_t pack_i;     //current
   cell_temp_t high_temp;  //temperature
   cell_temp_t low_temp;
   cell_volt_t high_volt;

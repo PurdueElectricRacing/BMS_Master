@@ -9,6 +9,7 @@
 #define TIM_FAN_PWM_H_
 
 #include "stm32f7xx_hal.h"
+#include "bms.h"
 
 #define TIM_PWM_PERIOD		10000
 

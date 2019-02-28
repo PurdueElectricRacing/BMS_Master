@@ -142,6 +142,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /* ADC1 interrupt Init */
+    HAL_NVIC_SetPriority(ADC_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspInit 1 */
     
   /* USER CODE END ADC1_MspInit 1 */
@@ -173,6 +176,8 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     */
     HAL_GPIO_DeInit(GPIOA, ISENSE_1_Pin|ISENSE_2_Pin);
 
+    /* ADC1 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(ADC_IRQn);
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
     
   /* USER CODE END ADC1_MspDeInit 1 */
@@ -359,14 +364,8 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
     PC12     ------> SDMMC1_CK
     PD2     ------> SDMMC1_CMD 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-    GPIO_InitStruct.Pin = GPIO_PIN_12;
+    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11 
+                          |GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
@@ -375,7 +374,7 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
 
     GPIO_InitStruct.Pin = GPIO_PIN_2;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF12_SDMMC1;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -423,9 +422,6 @@ void HAL_SD_MspInit(SD_HandleTypeDef* hsd)
 
     __HAL_LINKDMA(hsd,hdmatx,hdma_sdmmc1_tx);
 
-    /* SDMMC1 interrupt Init */
-    HAL_NVIC_SetPriority(SDMMC1_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(SDMMC1_IRQn);
   /* USER CODE BEGIN SDMMC1_MspInit 1 */
     
   /* USER CODE END SDMMC1_MspInit 1 */
@@ -467,9 +463,6 @@ void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
     /* SDMMC1 DMA DeInit */
     HAL_DMA_DeInit(hsd->hdmarx);
     HAL_DMA_DeInit(hsd->hdmatx);
-
-    /* SDMMC1 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(SDMMC1_IRQn);
   /* USER CODE BEGIN SDMMC1_MspDeInit 1 */
     
   /* USER CODE END SDMMC1_MspDeInit 1 */
