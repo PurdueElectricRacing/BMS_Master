@@ -406,8 +406,8 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[2] = extract_LSB(bms.macros.pack_volt);
       break;
     case PACK_CURRENT:
-      msg.Data[1] = extract_MSB(bms.macros.pack_i);
-      msg.Data[2] = extract_LSB(bms.macros.pack_i);
+      msg.Data[1] = extract_MSB(bms.macros.pack_i.ch2_high_current);
+      msg.Data[2] = extract_LSB(bms.macros.pack_i.ch2_high_current);
       break;
     case HIGH_TEMP:
       msg.Data[1] = extract_MSB(bms.macros.high_temp.val);
@@ -466,8 +466,8 @@ Success_t send_macro_msg() {
   msg.Data[0] = bms.macros.soc;
   msg.Data[1] = extract_MSB(bms.macros.pack_volt);
   msg.Data[2] = extract_LSB(bms.macros.pack_volt);
-  msg.Data[3] = extract_MSB(bms.macros.pack_i);
-  msg.Data[4] = extract_LSB(bms.macros.pack_i);
+  msg.Data[3] = extract_MSB(bms.macros.pack_i.ch2_high_current);
+  msg.Data[4] = extract_LSB(bms.macros.pack_i.ch2_high_current);
   msg.Data[5] = extract_MSB(bms.macros.high_temp.val);
   msg.Data[6] = extract_LSB(bms.macros.high_temp.val);
   

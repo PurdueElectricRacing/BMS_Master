@@ -163,6 +163,9 @@ void initRTOSObjects() {
               BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
   xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
               ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
+  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
+  xTaskCreate(task_getIsense, "ADC Current Sense", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
+  xTaskCreate(task_demo_PWM, "PWM DEMO", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
 }
 
 /***************************************************************************
@@ -221,7 +224,8 @@ void initBMSobject(flag_t mode) {
   bms.fault.overall = NORMAL;
   
   bms.macros.soc = 0;
-  bms.macros.pack_i = 0;
+  bms.macros.pack_i.ch1_low_current = 0;
+  bms.macros.pack_i.ch2_high_current = 0;
   bms.macros.pack_volt = 0;
   bms.macros.soh = 0;
   bms.macros.high_temp.val = LIMIT_TEMP_LOW;
