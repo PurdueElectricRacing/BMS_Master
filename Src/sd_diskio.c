@@ -164,7 +164,9 @@ DSTATUS SD_initialize(BYTE lun)
     /*
      * if the SD is correctly initialized, create the operation queue
      */
-
+    Stat = 0;
+    osMessageQDef(SD_Queue, QUEUE_SIZE, uint16_t);
+		SDQueueID = osMessageCreate (osMessageQ(SD_Queue), NULL);
     if (Stat != STA_NOINIT)
     {
       osMessageQDef(SD_Queue, QUEUE_SIZE, uint16_t);
