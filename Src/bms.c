@@ -6,9 +6,6 @@
  */
 #include "bms.h"
 
-uint16_t steer_angle = 0;
-uint16_t steer_strain = 0;
-
 Success_t temp_probe();
 Success_t volt_probe();
 
@@ -325,14 +322,6 @@ void task_bms_main() {
   while (1) {
     time_init = xTaskGetTickCount();
     i++;
-    //================ADC===================
-//    HAL_ADC_Start(periph.i_adc); //Start the ADC
-//    HAL_ADC_PollForConversion(periph.i_adc, 100); //read channel 12
-//    steer_angle = HAL_ADC_GetValue(periph.i_adc);
-//    HAL_ADC_PollForConversion(periph.i_adc, 100);
-//    steer_strain = HAL_ADC_GetValue(periph.i_adc);  //read channel 16
-//    HAL_ADC_Stop(periph.i_adc);
-    //======================================
     switch (bms.state) {
       case INIT:
         debug_lights(0, 0, 0, 1);
@@ -491,6 +480,8 @@ Success_t clear_faults() {
   bms.fault.undertemp = NORMAL;
   bms.fault.overvolt = NORMAL;
   bms.fault.undervolt = NORMAL;
+  bms.fault.COC = NORMAL;
+  bms.fault.DOC = NORMAL;
   
   for (i = 0; i < NUM_SLAVES; i++) {
     bms.fault.slave[i].connected = NORMAL;
@@ -722,7 +713,7 @@ Success_t temp_probe() {
   
   //safety check
   //undervolt check
-  if (temp_low.val < bms.params.temp_low_lim) {
+  if ((temp_low.val < bms.params.temp_low_lim) && (temp_low.val != (int16_t) TEMP_LOW_IMPOS)) {
     if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
       bms.fault.undertemp = FAULTED;
       xSemaphoreGive(bms.fault.sem);
