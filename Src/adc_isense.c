@@ -55,6 +55,9 @@ void task_getIsense() {
     //update measured value
     bms.macros.pack_i.ch2_high_current = current_value * CURRENT_VALUE_OFFSET;
     
+    //stop ADC
+    HAL_ADC_Stop(periph.i_adc);
+
     //determine current direction
     if (current_value < 0) {
       //discharging
