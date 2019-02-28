@@ -32,6 +32,7 @@ flag_t adc_toggle;
 void task_getIsense() {
   TickType_t time_init = 0;
   uint32_t adc_value;
+  uint32_t adc_value2;
   int32_t current_value;
 //  adc_toggle = ASSERTED;
   while (1) {
@@ -41,22 +42,24 @@ void task_getIsense() {
     HAL_ADC_Start(periph.i_adc);
     HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
     adc_value = HAL_ADC_GetValue(periph.i_adc);
-    //process ADC value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_1 / ISENSE_MAX - ISENSE_CHANNEL_1;
-    //update measured value
-    bms.macros.pack_i.ch1_low_current = current_value * CURRENT_VALUE_OFFSET;
-    
+		HAL_ADC_Stop(periph.i_adc);
+
     //poll for channel 2 adc value
     HAL_ADC_Start(periph.i_adc);
     HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
-    adc_value = HAL_ADC_GetValue(periph.i_adc);
+    adc_value2 = HAL_ADC_GetValue(periph.i_adc);
+    //stop ADC
+		HAL_ADC_Stop(periph.i_adc);
+
     //process ADC value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_2 / ISENSE_MAX - ISENSE_CHANNEL_2;
+		current_value = adc_value * 2 * ISENSE_CHANNEL_1 / ISENSE_MAX - ISENSE_CHANNEL_1;
+		//update measured value
+		bms.macros.pack_i.ch1_low_current = current_value * CURRENT_VALUE_OFFSET;
+    //process ADC value
+    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2 / ISENSE_MAX - ISENSE_CHANNEL_2;
     //update measured value
     bms.macros.pack_i.ch2_high_current = current_value * CURRENT_VALUE_OFFSET;
     
-    //stop ADC
-    HAL_ADC_Stop(periph.i_adc);
 
     //determine current direction
     if (current_value < 0) {

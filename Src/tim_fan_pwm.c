@@ -30,6 +30,8 @@ void task_demo_PWM() {
   TickType_t time_init = 0;
   uint32_t duty_percentage = 50;
   int32_t temp;
+  master_tim_pwm_set_duty(periph.tim, 0);
+  HAL_TIM_PWM_Start(periph.tim, TIM_CHANNEL_1);
   while (1) {
     //set PWM value based on current value
     temp = bms.macros.pack_i.ch2_high_current;
