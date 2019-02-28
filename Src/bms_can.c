@@ -256,11 +256,6 @@ Success_t process_temp(CanRxMsgTypeDef* rx) {
   Success_t status = SUCCESSFUL;
   uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
   uint8_t slave = rx->Data[0];
-  fault_t overtemp = NORMAL;
-  fault_t undertemp = NORMAL;
-  flag_t flag = DEASSERTED;
-  int16_t max_temp = 0;
-  int16_t min_temp = 0;
   
   int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
   int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
@@ -303,11 +298,6 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   Success_t status = SUCCESSFUL;
   uint8_t loc = rx->Data[1] * 3; //beginning spot in the array
   uint8_t slave = rx->Data[0];
-  uint16_t max_volt = 0;
-  uint16_t min_volt = 0;
-  fault_t overvolt = NORMAL;
-  fault_t undervolt = NORMAL;
-  flag_t flag = DEASSERTED;
   
   uint16_t volt1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
   uint16_t volt2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);

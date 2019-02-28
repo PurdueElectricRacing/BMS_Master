@@ -52,14 +52,14 @@
 #define BMS_MAIN_PRIORITY           3
 #define ERROR_CHECK_STACK_SIZE      128
 #define ERROR_CHECK_RATE_PRIORITY   1
-#define ADC_STACK_SIZE				128
-#define ADC_PRIORITY				1
+#define ADC_STACK_SIZE        128
+#define ADC_PRIORITY        1
 
 #define HEARTBEAT_RATE      750 / portTICK_RATE_MS
 #define BMS_MAIN_RATE       20 / portTICK_RATE_MS
 #define ERROR_CHECK_RATE    500 / portTICK_RATE_MS
-#define ADC_ISENSE_RATE    	50 / portTICK_RATE_MS
-#define FAN_PWM_RATE		100 / portTICK_RATE_MS
+#define ADC_ISENSE_RATE     50 / portTICK_RATE_MS
+#define FAN_PWM_RATE    100 / portTICK_RATE_MS
 
 #define POWER_LOSS_PIN      10
 
@@ -174,8 +174,8 @@ typedef struct {
   int16_t temp_low_lim; //temp
   uint16_t volt_high_lim; //volt
   uint16_t volt_low_lim; //volt
-  int16_t discharg_lim; //current
-  int16_t charg_lim;  //current
+  int32_t discharg_lim; //current
+  int32_t charg_lim;  //current
   
   //broadcasts
   flag_t volt_msg_en;
@@ -205,9 +205,9 @@ typedef struct {
 } cell_temp_t;
 
 typedef struct {
-	int32_t ch1_low_current;
-	int32_t ch2_high_current;
-}pack_i_t;
+  int32_t ch1_low_current;
+  int32_t ch2_high_current;
+} pack_i_t;
 
 typedef struct {
   //todo: add a semaphore

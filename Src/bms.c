@@ -89,7 +89,9 @@ void task_error_check() {
           bms.fault.overtemp == FAULTED ||
           bms.fault.undertemp == FAULTED ||
           bms.fault.overvolt == FAULTED ||
-          bms.fault.undervolt == FAULTED) {
+          bms.fault.undervolt == FAULTED ||
+					bms.fault.DOC == FAULTED ||
+					bms.fault.COC == FAULTED) {
         fault = FAULTED;
       }
       
@@ -222,6 +224,8 @@ void initBMSobject(flag_t mode) {
   bms.fault.overvolt = NORMAL;
   bms.fault.undervolt = NORMAL;
   bms.fault.overall = NORMAL;
+  bms.fault.COC = NORMAL;
+  bms.fault.DOC = NORMAL;
   
   bms.macros.soc = 0;
   bms.macros.pack_i.ch1_low_current = 0;
