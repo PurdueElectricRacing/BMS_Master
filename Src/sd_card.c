@@ -47,7 +47,7 @@ void task_sd_card() {
 						if ((bytesread != byteswritten)) {
 							return;/* Read data is different from the expected data */
 						}
-						//HAL_GPIO_WritePin(, , GPIO_PIN_SET);
+						HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 					}
 				}
 			}
