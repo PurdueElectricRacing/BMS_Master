@@ -673,8 +673,8 @@ Success_t temp_probe() {
 	Success_t status = FAILURE;
 	uint8_t i = 0;
 	uint8_t x = 0;
-	cell_volt_t temp_max;
-	cell_volt_t temp_low;
+	cell_temp_t temp_max;
+	cell_temp_t temp_low;
 
 	temp_max.index[0] = 0;
 	temp_max.index[1] = 0;
@@ -686,7 +686,7 @@ Success_t temp_probe() {
 	//find the highest and lowest values
 	for (i = 0; i < NUM_SLAVES; i++) {
 		for (x = 0; x < NUM_TEMP; x++) {
-			if (bms.vtaps.data[i][x] != TEMP_LOW_IMPOS) {
+			if (bms.temp.data[i][x] != TEMP_LOW_IMPOS) {
 				//valid temperature data
 				if (bms.temp.data[i][x] > temp_max.val) {
 					temp_max.val = bms.temp.data[i][x];

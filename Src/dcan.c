@@ -410,8 +410,8 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[2] = extract_LSB(bms.macros.pack_i);
       break;
     case HIGH_TEMP:
-      msg.Data[1] = extract_MSB(bms.macros.high_temp);
-      msg.Data[2] = extract_LSB(bms.macros.high_temp);
+      msg.Data[1] = extract_MSB(bms.macros.high_temp.val);
+      msg.Data[2] = extract_LSB(bms.macros.high_temp.val);
       break;
     case BROAD_CONFIG:
       msg.Data[1] = bitwise_or(CONFIG_VOLT_MSG_SHIFT, CONFIG_VOLT_MSG_MASK, bms.params.volt_msg_en);
@@ -468,8 +468,8 @@ Success_t send_macro_msg() {
   msg.Data[2] = extract_LSB(bms.macros.pack_volt);
   msg.Data[3] = extract_MSB(bms.macros.pack_i);
   msg.Data[4] = extract_LSB(bms.macros.pack_i);
-  msg.Data[5] = extract_MSB(bms.macros.high_temp);
-  msg.Data[6] = extract_LSB(bms.macros.high_temp);
+  msg.Data[5] = extract_MSB(bms.macros.high_temp.val);
+  msg.Data[6] = extract_LSB(bms.macros.high_temp.val);
   
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
     status = FAILURE;
