@@ -149,26 +149,26 @@ void task_broadcast() {
         if (execute_broadcast(bms.params.volt_msg_rate, i)) {
           send_volt_msg();
         }
+        vTaskDelay(BROADCAST_DELAY);
       }
-      vTaskDelay(BROADCAST_DELAY);
       if (bms.params.temp_msg_en == ASSERTED) {
         if (execute_broadcast(bms.params.temp_msg_rate, i)) {
           send_temp_msg();
         }
+        vTaskDelay(BROADCAST_DELAY);
       }
-      vTaskDelay(BROADCAST_DELAY);
       if (bms.params.ocv_msg_en == ASSERTED) {
         if (execute_broadcast(bms.params.ocv_msg_rate, i)) {
           send_ocv_msg();
         }
+        vTaskDelay(BROADCAST_DELAY);
       }
-      vTaskDelay(BROADCAST_DELAY);
       if (bms.params.ir_msg_en == ASSERTED) {
         if (execute_broadcast(bms.params.ir_msg_rate, i)) {
           send_ir_msg();
         }
+        vTaskDelay(BROADCAST_DELAY);
       }
-      vTaskDelay(BROADCAST_DELAY);
       if (bms.params.macro_msg_en == ASSERTED) {
         if (execute_broadcast(bms.params.macro_msg_rate, i)) {
           send_macro_msg();
@@ -246,7 +246,7 @@ Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
       //TODO: raymond sd card read/send enable
       break;
     case DELETE:
-      //TODO: delete sd card data
+      //TODO: raymond delete sd card data
       break;
     case CONFIGURE:
       //configure broadcast operations
@@ -462,7 +462,7 @@ Success_t send_macro_msg() {
   msg.IDE = CAN_ID_STD;
   msg.RTR = CAN_RTR_DATA;
   msg.DLC = MACRO_MSG_LENGTH;
-  msg.StdId = ID_BMS_WAKEUP;
+  msg.StdId = ID_MASTER_MACRO_MSG;
   msg.Data[0] = bms.macros.soc;
   msg.Data[1] = extract_MSB(bms.macros.pack_volt);
   msg.Data[2] = extract_LSB(bms.macros.pack_volt);
@@ -470,6 +470,7 @@ Success_t send_macro_msg() {
   msg.Data[4] = extract_LSB(bms.macros.pack_i.ch2_high_current);
   msg.Data[5] = extract_MSB(bms.macros.high_temp.val);
   msg.Data[6] = extract_LSB(bms.macros.high_temp.val);
+  msg.Data[7] = 0;
   
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
     status = FAILURE;

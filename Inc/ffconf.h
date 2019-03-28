@@ -53,7 +53,7 @@
 /*-----------------------------------------------------------------------------/
 / Additional user header to be used  
 /-----------------------------------------------------------------------------*/
-#include "main.h"
+//#include "main.h"
 #include "stm32f7xx_hal.h"
 #include "cmsis_os.h"    /* _FS_REENTRANT set to 1 */
 #include "bsp_driver_sd.h"

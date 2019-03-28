@@ -43,13 +43,13 @@
 #define CONFIG_MACRO_MSG_SHIFT    4
 
 //can msg
-#define MACRO_MSG_LENGTH          7
+#define MACRO_MSG_LENGTH          8
 #define GENERIC_MSG_LENGTH        8
 #define VALUES_PER_MSG            3
 #define PARAM_RES_MSG_LENGTH      3
 
 //rates
-#define DCAN_TX_RATE    50 / portTICK_RATE_MS //send at 20Hz
+#define DCAN_TX_RATE    5 / portTICK_RATE_MS //send at 200Hz
 #define DCAN_RX_RATE    50 / portTICK_RATE_MS //send at 20Hz
 #define BROADCAST_MS    50
 #define BROADCAST_RATE  BROADCAST_MS / portTICK_RATE_MS //fastest broadcast is 20hz

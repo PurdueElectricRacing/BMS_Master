@@ -34,15 +34,6 @@ void task_heartbeat() {
   while (1) {
     time_init = xTaskGetTickCount();
     HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
-    //HAL_Delay(750);
-    //HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
-    //HAL_Delay(750);
-    //HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
-    //HAL_Delay(750);
-    //HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
-    //HAL_Delay(750);
-    //HAL_GPIO_TogglePin(WDI_GPIO_Port, WDI_Pin);
-    //HAL_Delay(2000);
     vTaskDelayUntil(&time_init, HEARTBEAT_RATE);
   }
 }
@@ -162,7 +153,7 @@ void initRTOSObjects() {
               BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
   xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
               ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
-  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
+//  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
   xTaskCreate(task_getIsense, "ADC Current Sense", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
   xTaskCreate(task_demo_PWM, "PWM DEMO", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
 }
@@ -214,6 +205,12 @@ void initBMSobject(flag_t mode) {
   bms.params.volt_msg_en = DEASSERTED;
   bms.params.macro_msg_en = ASSERTED;
   
+  bms.params.ir_msg_rate = BROADCAST_MS * 10;
+	bms.params.ocv_msg_rate = BROADCAST_MS * 10;
+	bms.params.temp_msg_rate = BROADCAST_MS * 10;
+	bms.params.volt_msg_rate = BROADCAST_MS * 10;
+	bms.params.macro_msg_rate = BROADCAST_MS;
+
   bms.fault.charg_en = NORMAL;
   bms.fault.discharg_en = NORMAL;
   bms.fault.overtemp = NORMAL;
@@ -548,7 +545,7 @@ Success_t send_faults() {
     }
   }
   
-  xQueueSendToBack(bms.q_tx_bmscan, &msg, 100); //todo DCAN
+  xQueueSendToBack(bms.q_tx_dcan, &msg, 100); //todo DCAN
   return SUCCESSFUL;
 }
 
