@@ -15,7 +15,7 @@
 //#include "sd_diskio.h"
 //#include "ff_gen_drv.h"
 
-#define SD_CARD_RATE       500 / portTICK_RATE_MS
+#define SD_CARD_RATE       1000 / portTICK_RATE_MS
 
 void task_sd_card();
 
