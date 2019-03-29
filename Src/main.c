@@ -165,7 +165,7 @@ int main(void)
   //BMS_can is a standalone master so has access to both fifo's
   HAL_CAN_ActivateNotification(&hcan3, CAN_IT_RX_FIFO0_MSG_PENDING);
   HAL_CAN_ActivateNotification(&hcan3, CAN_IT_RX_FIFO1_MSG_PENDING);
-  initRTOSObjects(); //start tasks
+	initRTOSObjects(); //start tasks
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -415,7 +415,7 @@ static void MX_SDMMC1_SD_Init(void)
   hsd1.Init.ClockPowerSave = SDMMC_CLOCK_POWER_SAVE_DISABLE;
   hsd1.Init.BusWide = SDMMC_BUS_WIDE_1B;
   hsd1.Init.HardwareFlowControl = SDMMC_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd1.Init.ClockDiv = 0;
+  hsd1.Init.ClockDiv = 4;
   /* USER CODE BEGIN SDMMC1_Init 2 */
   
   /* USER CODE END SDMMC1_Init 2 */
@@ -605,7 +605,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin|RESET_LATCH_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, BLUE_LED_Pin|GREEN_LED_Pin|RED_LED_Pin|ORANGE_LED_Pin, GPIO_PIN_RESET);
@@ -616,8 +616,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : WDI_Pin SDC_BMS_FAULT_Pin LPM_Pin */
-  GPIO_InitStruct.Pin = WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin;
+  /*Configure GPIO pins : WDI_Pin SDC_BMS_FAULT_Pin LPM_Pin RESET_LATCH_Pin */
+  GPIO_InitStruct.Pin = WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin|RESET_LATCH_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

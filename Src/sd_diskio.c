@@ -209,32 +209,8 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
                            count) == MSD_OK)
   {
     /* wait for a message from the queue or a timeout */
-    event = osMessageGet(SDQueueID, SD_TIMEOUT);
-
-    if (event.status == osEventMessage)
-    {
-      if (event.value.v == READ_CPLT_MSG)
-      {
-        timer = osKernelSysTick() + SD_TIMEOUT;
-        /* block until SDIO IP is ready or a timeout occur */
-        while(timer > osKernelSysTick())
-        {
-          if (BSP_SD_GetCardState() == SD_TRANSFER_OK)
-          {
-            res = RES_OK;
-#if (ENABLE_SD_DMA_CACHE_MAINTENANCE == 1)
-            /*
-               the SCB_InvalidateDCache_by_Addr() requires a 32-Byte aligned address,
-               adjust the address and the D-Cache size to invalidate accordingly.
-             */
-            alignedAddr = (uint32_t)buff & ~0x1F;
-            SCB_InvalidateDCache_by_Addr((uint32_t*)alignedAddr, count*BLOCKSIZE + ((uint32_t)buff - alignedAddr));
-#endif
-            break;
-          }
-        }
-      }
-    }
+  	while (BSP_SD_GetCardState()!= MSD_OK);
+  	res = RES_OK;
   }
 
   return res;
@@ -272,24 +248,8 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
                             count) == MSD_OK)
   {
     /* Get the message from the queue */
-    event = osMessageGet(SDQueueID, SD_TIMEOUT);
-
-    if (event.status == osEventMessage)
-    {
-      if (event.value.v == WRITE_CPLT_MSG)
-      {
-        timer = osKernelSysTick() + SD_TIMEOUT;
-        /* block until SDIO IP is ready or a timeout occur */
-        while(timer > osKernelSysTick())
-        {
-          if (BSP_SD_GetCardState() == SD_TRANSFER_OK)
-          {
-            res = RES_OK;
-            break;
-          }
-        }
-      }
-    }
+  	while (BSP_SD_GetCardState()!= MSD_OK);
+  	res = RES_OK;
   }
 
   return res;

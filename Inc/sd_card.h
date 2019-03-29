@@ -9,13 +9,14 @@
 #define SD_CARD_H_
 
 #include "bms.h"
-#include "sd_diskio.h"
-#include "ff_gen_drv.h"
 #include "fatfs.h"
+//#include "ff.h"
+//#include "ffconf.h"
+//#include "sd_diskio.h"
+//#include "ff_gen_drv.h"
 
-#define SD_CARD_RATE       500 / portTICK_RATE_MS // @matt
+#define SD_CARD_RATE       500 / portTICK_RATE_MS
 
-void init_sd_card();
 void task_sd_card();
 
 #endif /* SD_CARD_H_ */
