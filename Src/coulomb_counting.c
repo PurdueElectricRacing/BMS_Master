@@ -27,18 +27,17 @@
 ***************************************************************************/
 void task_coulomb_counting() {
   TickType_t time_init = 0;
-  uint32_t duty_percentage = 50;
   //CONSTANTS
-  int32_t V_min = LIMIT_VOLT_LOW;
-  int32_t V_max = LIMIT_VOLT_HIGH;
+  int16_t V_min = bms.params.volt_low_lim;
+  int16_t V_max = bms.params.volt_high_lim;
   //inputs
-  int32_t I_instant;
-  int32_t V_instant;
-  int32_t T_instant;
-  int32_t C_rated;
-  int32_t SOC;
-  int32_t SOH;
-  int32_t DOD;
+  int32_t I_instant = bms.macros.pack_i.ch1_low_current;
+  int32_t V_instant = bms.macros.pack_volt;
+  int32_t T_instant;  //TODO get highest temperature
+  int32_t C_rated;  //TODO capacity of the battery pack
+  int32_t SOC = bms.macros.soc;
+  int32_t SOH = bms.macros.soh;
+  int32_t DOD;  //TODO depth of discharge
   int32_t dt;
   //Temporary variables
   int32_t d_DOD;
@@ -82,6 +81,7 @@ void task_coulomb_counting() {
 	}
 
 	//TODO: Thermal effects
+	//TODO: change temperature value to constants
 	if (T_instant <= -10)
 	{
         a = 0.6;
