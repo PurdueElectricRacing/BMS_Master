@@ -12,6 +12,7 @@
 #include "stm32f7xx_hal.h"
 #include "stm32f7xx_hal_can.h"
 #include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -231,6 +232,7 @@ typedef struct {
   QueueHandle_t     q_tx_dcan;
   QueueHandle_t     q_rx_chargcan;
   QueueHandle_t     q_tx_chargcan;
+  QueueHandle_t			q_sd_card;
   
   params_t          params;
   bmsfaults_t       fault;
@@ -261,6 +263,11 @@ typedef struct {
   TickType_t last_msg;
   SemaphoreHandle_t sem;
 } WatchDawg_t;
+
+typedef struct {
+  uint32_t id;
+  uint32_t data[8];
+} sdcard_t;
 
 volatile bms_t bms;
 volatile WatchDawg_t wdawg[NUM_SLAVES];

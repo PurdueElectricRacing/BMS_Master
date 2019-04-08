@@ -140,6 +140,7 @@ void initRTOSObjects() {
   bms.q_tx_bmscan = xQueueCreate(BMSCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   bms.q_rx_dcan   = xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   bms.q_tx_dcan   = xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
+  bms.q_sd_card   = xQueueCreate(BMSSD_CARD_Q_SIZE, sizeof(sdcard_t));
   
   //start tasks
   xTaskCreate(task_Slave_WDawg, "Master WDawg", WDAWG_STACK_SIZE, NULL, WDAWG_PRIORITY, NULL);
@@ -153,7 +154,7 @@ void initRTOSObjects() {
               BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
   xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
               ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
-  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 3, NULL);
+  xTaskCreate(task_sd_card, "SD Card", BMSCAN_RX_STACK_SIZE, NULL, BMSSD_CARD_PRIORITY, NULL);
   xTaskCreate(task_getIsense, "ADC Current Sense", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
   xTaskCreate(task_demo_PWM, "PWM DEMO", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
 }

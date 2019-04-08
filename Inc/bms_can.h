@@ -48,6 +48,11 @@
 #define BMSCAN_RX_Q_SIZE       20
 #define BMSCAN_RX_PRIORITY     1
 
+//SD CARD
+#define BMSSD_CARD_STACK_SIZE	128
+#define BMSSD_CARD_Q_SIZE			64
+#define BMSSD_CARD_PRIORITY		3
+
 //WDawg RTOS
 #define WDAWG_STACK_SIZE    128
 #define WDAWG_PRIORITY      1
