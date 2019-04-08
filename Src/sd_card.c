@@ -18,7 +18,7 @@ void task_sd_card() {
 		//		== FR_OK) {
 		if (f_open(&SDFileData, "DATA.TXT", FA_OPEN_APPEND | FA_WRITE) == FR_OK) {
 			f_lseek(&SDFileData, f_size(&SDFileData));
-			if (f_open(&SDFileSetting, "SETTING.TXT", FA_OPEN_APPEND | FA_WRITE)
+			if (f_open(&SDFileSetting, "SETTING.TXT", FA_CREATE_ALWAYS | FA_WRITE)
 					== FR_OK) {
 				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
 				task_sd_card_process();
@@ -92,7 +92,7 @@ void task_sd_card_process() {
 					b++;
 				}
 				if (b == 3) {
-					f_write(&SDFileSetting, sett0, sizeof(sett0), (void *) &wbytes);
+					f_write(&SDFileSetting, sett1, sizeof(sett0), (void *) &wbytes);
 					f_close(&SDFileData);
 					f_close(&SDFileSetting);
 					return;
