@@ -212,12 +212,12 @@ typedef struct {
 
 typedef struct {
   //todo: add a semaphore
-  uint8_t soc;        //percent
-  uint8_t soh;        //percent
-  float dod;        //percent
-  uint16_t pack_volt; //voltage
-  pack_i_t pack_i;     //current
-  cell_temp_t high_temp;  //temperature
+  uint8_t soc;                  //0.5%
+  uint8_t soh;                  //0.5%
+  uint8_t dod;                  //0.5%
+  uint16_t pack_volt;           //0.1 mV
+  pack_i_t pack_i;              //0.1 A
+  cell_temp_t high_temp;        //0.1 degree C
   cell_temp_t low_temp;
   cell_volt_t high_volt;
   cell_volt_t low_volt;
