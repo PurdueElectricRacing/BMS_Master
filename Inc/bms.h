@@ -265,8 +265,9 @@ typedef struct {
 } WatchDawg_t;
 
 typedef struct {
-  uint32_t id;
-  uint32_t data[8];
+  char id[3];
+  char data[16];
+  uint32_t file; // 1 for data.txt, 0 for setting.txt
 } sdcard_t;
 
 volatile bms_t bms;

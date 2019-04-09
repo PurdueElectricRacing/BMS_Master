@@ -10,7 +10,6 @@ void task_sd_card() {
 
 	uint8_t text0[] = "\n0x000, 0x0000000000000000";
 
-
 	//uint8_t workBuffer[_MAX_SS];
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) == FR_OK) {
@@ -54,25 +53,19 @@ void task_sd_card() {
 
 void task_sd_card_process() {
 	uint32_t wbytes;
-	uint8_t text1[] = "\n0x111, 0x1111111111111111";
-	uint8_t sett0[] = "00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
-				"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
-				"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
-				"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000";
-	uint8_t sett1[] = "01, 0x0001\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
+	char text1[] = "\n0x111, 0x1111111111111111";
+	char sett0[] = "00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
 			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
-				"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
-				"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000";
+			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
+			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000";
+	char sett1[] = "01, 0x0001\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
+			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
+			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000\n"
+			"00, 0x0000\n00, 0x0000\n00, 0x0000\n00, 0x0000";
 	sdcard_t msg;
-	msg.id = 0;
-	msg.data[0] = 0;
-	msg.data[1] = 0;
-	msg.data[2] = 0;
-	msg.data[3] = 0;
-	msg.data[4] = 0;
-	msg.data[5] = 0;
-	msg.data[6] = 0;
-	msg.data[7] = 0;
+	strncpy(msg.id, "000", 3);
+	strncpy(msg.data, "0000000000000000", 16);
+	msg.file = 0;
 	TickType_t time_init = 0;
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
 	int a = 0;
@@ -81,29 +74,38 @@ void task_sd_card_process() {
 		time_init = xTaskGetTickCount();
 		if (xQueuePeek(bms.q_sd_card, &msg, TIMEOUT) == pdTRUE) {
 			xQueueReceive(bms.q_sd_card, &msg, TIMEOUT);
-			switch (msg.id) {
+			switch (msg.file) {
 			case 0:
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+				f_close(&SDFileData);
+				f_write(&SDFileSetting, sett1, sizeof(sett1), (void *) &wbytes);
+				f_close(&SDFileSetting);
+				return;
 				break;
 			case 1:
 				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
 				if (b < 3) {
 					f_lseek(&SDFileData, f_size(&SDFileData));
 					f_write(&SDFileData, text1, sizeof(text1), (void *) &wbytes);
 					b++;
-				}
-				if (b == 3) {
-					f_write(&SDFileSetting, sett1, sizeof(sett0), (void *) &wbytes);
-					f_close(&SDFileData);
-					f_close(&SDFileSetting);
-					return;
 				}
 				break;
 			default:
 				break;
 			}
 		}
+		if (b == 3) {
+			msg.file = 0;
+			xQueueSendToBack(bms.q_sd_card, &msg, TIMEOUT);
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
+			b = 0;
+		}
 		if (a == 3) {
-			msg.id = 1;
+			strncpy(msg.id, "001", 3);
+			strncpy(msg.data, "0123456700001111", 16);
+			msg.file = 1;
 			xQueueSendToBack(bms.q_sd_card, &msg, TIMEOUT);
 			a = 0;
 		} else {
