@@ -32,21 +32,30 @@ void task_coulomb_counting() {
   int16_t V_max = bms.params.volt_high_lim;
   //inputs
   int32_t I_instant = bms.macros.pack_i.ch1_low_current;
-  int32_t V_instant = bms.macros.pack_volt;
-  int32_t T_instant;  //TODO get highest temperature
+  uint16_t V_instant = bms.macros.pack_volt;
+  int16_t T_instant = bms.macros.high_temp.val;
   int32_t C_rated;  //TODO capacity of the battery pack
-  int32_t SOC = bms.macros.soc;
-  int32_t SOH = bms.macros.soh;
-  int32_t DOD;  //TODO depth of discharge
-  int32_t dt;
+  uint8_t SOC = bms.macros.soc;
+  uint8_t SOH = bms.macros.soh;
+  float DOD = bms.macros.dod;
+  float dt = COULOMB_COUNTING_RATE * portTICK_RATE_MS / 1000;
   //Temporary variables
-  int32_t d_DOD;
+  float d_DOD;
   int32_t a;
 
   while (1) {
-	//Discharge mode
-	if (I_instant > 0)
-	{
+    //Update input values
+    SOC = bms.macros.soc;
+    SOH = bms.macros.soh;
+    DOD = bms.macros.dod;
+    I_instant = bms.macros.pack_i.ch1_low_current;
+    V_instant = bms.macros.pack_volt;
+    T_instant = bms.macros.high_temp.val;
+
+
+    //Discharge mode
+    if (I_instant > 0)
+    {
         // Reset SOH
         if (V_instant < V_min)
         {
@@ -55,13 +64,13 @@ void task_coulomb_counting() {
         // Current integration
         else
         {
-            d_DOD = I_instant * dt / C_rated;
+            d_DOD = dt * I_instant / C_rated;
             DOD = DOD + d_DOD;
             SOC = SOH - DOD;
         }
-	}
-	//Charge mode
-	else if (I_instant < 0)
+    }
+    //Charge mode
+    else if (I_instant < 0)
 	{
         if (V_instant > V_max)
         {
@@ -74,31 +83,33 @@ void task_coulomb_counting() {
             SOC = SOH - DOD;
         }
 	}
-	//Open circuit
-	else
-	{
-		//TODO: self discharge consideration
-	}
+    //Open circuit
+    else
+    {
+        //TODO: self discharge consideration
+    }
 
-	//TODO: Thermal effects
-	//TODO: change temperature value to constants
-	if (T_instant <= -10)
-	{
+    //Thermal effects
+    //TODO: currently T_instant is taken from highest temperature cell in the module
+    //		should probably take the average temperature of the whole module
+    //TODO: change temperature value to
+    if (T_instant <= TEMPERATURE_CUTOFF_1)
+    {
         a = 0.6;
-	}
-    else if (T_instant <= 5)
+    }
+    else if (T_instant <= TEMPERATURE_CUTOFF_2)
     {
         a = 0.8;
     }
-    else if (T_instant <= 25)
+    else if (T_instant <= TEMPERATURE_CUTOFF_3)
     {
         a = 1;
     }
-    else if (T_instant <= 45)
+    else if (T_instant <= TEMPERATURE_CUTOFF_4)
     {
         a = 0.95;
     }
-    else if (T_instant <= 60)
+    else if (T_instant <= TEMPERATURE_CUTOFF_5)
     {
         a = 0.9;
     }
@@ -109,6 +120,6 @@ void task_coulomb_counting() {
     SOC = SOC * a;
 
 
-    vTaskDelayUntil(&time_init, FAN_PWM_RATE);
+    vTaskDelayUntil(&time_init, COULOMB_COUNTING_RATE);
   }
 }
