@@ -221,6 +221,7 @@ typedef struct {
   cell_temp_t low_temp;
   cell_volt_t high_volt;
   cell_volt_t low_volt;
+  cell_config_t config;
   
   SemaphoreHandle_t sem;
 } macros_t;
