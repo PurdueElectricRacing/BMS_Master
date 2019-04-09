@@ -225,6 +225,13 @@ typedef struct {
   SemaphoreHandle_t sem;
 } macros_t;
 
+// Cell configuration input by user through GUI and stored on SD card
+// read from SD card on every start up
+typedef struct {
+  uint8_t rated_capacity;           //rated capacity of the cell
+  uint8_t N_parallel;               //number of parallel cell
+}cell_config_t;
+
 //Main BMS structure that holds can handles and all of the queues
 typedef struct {
   QueueHandle_t     q_rx_bmscan;
