@@ -221,7 +221,6 @@ typedef struct {
   cell_temp_t low_temp;
   cell_volt_t high_volt;
   cell_volt_t low_volt;
-  cell_config_t config;
   
   SemaphoreHandle_t sem;
 } macros_t;
@@ -248,6 +247,7 @@ typedef struct {
   vtap_t            vtaps; //2d array holding all voltage values
   temp_t            temp; //2d array holding all temperature values
   macros_t          macros;
+  cell_config_t     cell_config;
   
   TaskHandle_t* normal_op_tasks[NUM_NORMAL_TASKS];
   
