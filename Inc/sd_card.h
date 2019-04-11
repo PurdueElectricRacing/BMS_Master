@@ -19,5 +19,6 @@
 
 void task_sd_card();
 void task_sd_card_process();
+void task_sd_card_get_setting(char m[], int c);
 
 #endif /* SD_CARD_H_ */
