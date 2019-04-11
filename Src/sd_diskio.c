@@ -209,7 +209,7 @@ DRESULT SD_read(BYTE lun, BYTE *buff, DWORD sector, UINT count)
                            count) == MSD_OK)
   {
     /* wait for a message from the queue or a timeout */
-  	while (BSP_SD_GetCardState()!= MSD_OK);
+  	while (BSP_SD_GetCardState() != MSD_OK);
   	res = RES_OK;
   }
 
@@ -248,7 +248,7 @@ DRESULT SD_write(BYTE lun, const BYTE *buff, DWORD sector, UINT count)
                             count) == MSD_OK)
   {
     /* Get the message from the queue */
-  	while (BSP_SD_GetCardState()!= MSD_OK);
+  	while (BSP_SD_GetCardState() != MSD_OK);
   	res = RES_OK;
   }
 
