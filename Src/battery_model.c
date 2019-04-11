@@ -67,7 +67,6 @@ void task_battery_model() {
   int Cpc;
 
   //Temporary variables
-  int32_t d_DOD;
 
   while (1) {
       // Method 1: using time constant
@@ -84,7 +83,7 @@ void task_battery_model() {
           + (((1 - exp(-dt / tpc)) / (dt / tpc)) - exp(-dt / tpc)) * IL
           + exp(-dt / tpc) * Ipc;
 
-      VL = Voc - Ro * IL - Rpa * Ipa - Rpc * Ipc;
+      Voc = VL + Ro * IL + Rpa * Ipa + Rpc * Ipc;
 
       // Method 2: using estimated effective resistance and effective capacitance
       //Update input values
@@ -94,8 +93,56 @@ void task_battery_model() {
       //Calculation for Method 2
 //      Vpa = - (Vpa / (Rpa * Cpa)) + (IL / Cpa);
 //      Vpc = - (Vpc / (Rpc * Cpc)) + (IL / Cpc);
-//      VL = Voc - Vpa - Vpc - IL * Ro;
+//      Voc = VL + Vpa + Vpc + IL * Ro;
+
+      // Method 3: using piecewise linear model with user inputed data
 
     vTaskDelayUntil(&time_init, COULOMB_COUNTING_RATE);
   }
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: update_dp_model_parameters
+*
+*     Programmer's Name: Josh Shao
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. None
+*
+*     Function Description:
+*
+***************************************************************************/
+void update_dp_model_parameters(){
+
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: LUT_SOC_OCV
+*
+*     Programmer's Name: Josh Shao
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. None
+*
+*     Function Description:
+*
+***************************************************************************/
+void LUT_SOC_OCV(){
+
 }
