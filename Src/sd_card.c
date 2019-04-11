@@ -7,12 +7,12 @@
 #include "sd_card.h"
 
 void task_sd_card() {
-	uint8_t workBuffer[_MAX_SS];
+	//uint8_t workBuffer[_MAX_SS];
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 	HAL_Delay(100);
 	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) == FR_OK) {
-		if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer))
-				== FR_OK) {
+		//if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer))
+		//		== FR_OK) {
 		HAL_Delay(100);
 		if (f_open(&SDFileData, "DATA.TXT", FA_OPEN_APPEND | FA_WRITE) == FR_OK) {
 			f_lseek(&SDFileData, f_size(&SDFileData));
@@ -21,10 +21,10 @@ void task_sd_card() {
 					== FR_OK) {
 				HAL_Delay(100);
 				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-				sd_card_process();
+				task_sd_card_process();
 			}
 		}
-		}
+		//}
 	}
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
@@ -34,7 +34,7 @@ void task_sd_card() {
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
 }
 
-void sd_card_process() {
+void task_sd_card_process() {
 	uint32_t wbytes;
 	char t0[] = "\n0x111, 0x1111111111111111";
 	char t1[] = "\n0x111, 0x1111111111111111";
@@ -44,7 +44,7 @@ void sd_card_process() {
 	sdcard_t msg;
 	strncpy(msg.id, "000", 3);
 	strncpy(msg.data, "0000000000000000", 16);
-	msg.file = 1;
+	msg.file = 0;
 	TickType_t time_init = 0;
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
 	int a = 0;
@@ -58,24 +58,13 @@ void sd_card_process() {
 			switch (msg.file) {
 			case 0:
 				f_close(&SDFileData);
-				/*
-				for (int i = 0; i < 12; i++) {
-					task_sd_card_get_setting(setting, i);
-				}
-				*/
 				f_write(&SDFileSetting, setting, sizeof(setting), (void *) &wbytes);
 				f_close(&SDFileSetting);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
-				HAL_Delay(500);
-				FATFS_UnLinkDriver(SDPath);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
-				vTaskDelete(NULL);
+				return;
 				break;
 			case 1:
-				snprintf(t0, 7, "\n0x%s", msg.id);
-				snprintf(t1, 21,", 0x%s", msg.data);
+				sprintf(t0, "\n0x%s", "000");
+				sprintf(t1, ", 0x%s", "0123456701234567");
 				strcpy(t0, strcat(t0, t1));
 				if (b < 3) {
 					f_lseek(&SDFileData, f_size(&SDFileData));
@@ -110,7 +99,7 @@ void sd_card_process() {
 	}
 }
 
-void sd_card_get_setting(char m[], int c) {
+void task_sd_card_get_setting(char m[], int c) {
 	char f[] = "0000";
 	char ff[] = "00000000";
 	int x = 0;
