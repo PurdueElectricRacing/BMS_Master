@@ -27,28 +27,36 @@
 ***************************************************************************/
 void task_coulomb_counting() {
   TickType_t time_init = 0;
+
   //CONSTANTS
   int16_t V_min = bms.params.volt_low_lim;
   int16_t V_max = bms.params.volt_high_lim;
-  //inputs
-  int32_t I_instant = bms.macros.pack_i.ch1_low_current;
-  uint16_t V_instant = bms.macros.pack_volt;
-  int16_t T_instant = bms.macros.high_temp.val;
-  int32_t C_rated;  //TODO capacity of the battery pack
-  uint8_t SOC = bms.macros.soc;
-  uint8_t SOH = bms.macros.soh;
-  float DOD = bms.macros.dod;
-  float dt = COULOMB_COUNTING_RATE * portTICK_RATE_MS / 1000;
-  //Temporary variables
-  float d_DOD;
-  int32_t a;
 
-  while (1) {
+  //inputs
+  int32_t I_instant = bms.macros.pack_i.ch1_low_current;            //unit 0.1 A
+  uint16_t V_instant = bms.macros.pack_volt;                        //unit 0.1 mV
+  int16_t T_instant = bms.macros.high_temp.val;                     //unit 0.1 C
+  uint8_t N_parallel = bms.cell_config.N_parallel;                  //# parallel cell
+  uint8_t capacity = bms.cell_config.rated_capacity;                //unit 0.1 Ah
+  uint16_t C_rated = N_parallel * capacity;                         //unit 0.1 Ah
+  C_rated = C_rated * HOUR_TO_SECOND;                               //unit 0.1 As
+  double SOC = bms.macros.soc / 2;                                  //unit %
+  double SOH = bms.macros.soh / 2;                                  //unit %
+  double DOD = bms.macros.dod / 2;                                  //unit %
+  uint8_t dt = COULOMB_COUNTING_RATE * portTICK_RATE_MS;            //unit ms
+
+  //Temporary variables
+  double d_DOD;                                                     //unit %
+  float a;                                                          //temperature constant
+
+  while (1)
+  {
     //Update input values
-    SOC = bms.macros.soc;
-    SOH = bms.macros.soh;
-    DOD = bms.macros.dod;
     I_instant = bms.macros.pack_i.ch1_low_current;
+    if(I_instant / CURRENT_VALUE_OFFSET >= ISENSE_CHANNEL_1_MAX - ISENSE_HYSTERESIS)
+    {
+        I_instant = bms.macros.pack_i.ch2_high_current;
+    }
     V_instant = bms.macros.pack_volt;
     T_instant = bms.macros.high_temp.val;
 
@@ -64,7 +72,7 @@ void task_coulomb_counting() {
         // Current integration
         else
         {
-            d_DOD = dt * I_instant / C_rated;
+            d_DOD = (double) dt / MILLISECOND_TO_SECOND * I_instant / C_rated / CURRENT_VALUE_OFFSET;
             DOD = DOD + d_DOD;
             SOC = SOH - DOD;
         }
@@ -78,7 +86,7 @@ void task_coulomb_counting() {
         }
         else
         {
-            d_DOD = I_instant * dt / C_rated;
+            d_DOD = (double) dt / MILLISECOND_TO_SECOND * I_instant / C_rated / CURRENT_VALUE_OFFSET;
             DOD = DOD - d_DOD;
             SOC = SOH - DOD;
         }
@@ -92,7 +100,6 @@ void task_coulomb_counting() {
     //Thermal effects
     //TODO: currently T_instant is taken from highest temperature cell in the module
     //		should probably take the average temperature of the whole module
-    //TODO: change temperature value to
     if (T_instant <= TEMPERATURE_CUTOFF_1)
     {
         a = 0.6;
@@ -119,6 +126,11 @@ void task_coulomb_counting() {
     }
     SOC = SOC * a;
 
+    //Update value to bms macros
+    //TODO: does not take into account of the battery model SOC estimation
+    bms.macros.soc = (int) SOC * 2;
+    bms.macros.soh = (int) SOH * 2;
+    bms.macros.dod = (int) DOD * 2;
 
     vTaskDelayUntil(&time_init, COULOMB_COUNTING_RATE);
   }
