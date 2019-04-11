@@ -7,12 +7,12 @@
 #include "sd_card.h"
 
 void task_sd_card() {
-	//uint8_t workBuffer[_MAX_SS];
+	uint8_t workBuffer[_MAX_SS];
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 	HAL_Delay(100);
 	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) == FR_OK) {
-		//if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer))
-		//		== FR_OK) {
+		if (f_mkfs((TCHAR const*) SDPath, FM_ANY, 0, workBuffer, sizeof(workBuffer))
+				== FR_OK) {
 		HAL_Delay(100);
 		if (f_open(&SDFileData, "DATA.TXT", FA_OPEN_APPEND | FA_WRITE) == FR_OK) {
 			f_lseek(&SDFileData, f_size(&SDFileData));
@@ -24,7 +24,7 @@ void task_sd_card() {
 				task_sd_card_process();
 			}
 		}
-		//}
+		}
 	}
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
