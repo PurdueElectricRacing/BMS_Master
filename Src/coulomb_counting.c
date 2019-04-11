@@ -95,6 +95,7 @@ void task_coulomb_counting() {
     else
     {
         //TODO: self discharge consideration
+        //Li-ion cell: 5% in 24h, then 1–2% per month (plus 3% for safety circuit)
     }
 
     //Thermal effects
@@ -122,7 +123,7 @@ void task_coulomb_counting() {
     }
     else
     {
-        a = 0.8;
+        a = 0.9;
     }
     SOC = SOC * a;
 

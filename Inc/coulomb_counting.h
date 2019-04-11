@@ -18,7 +18,7 @@
 
 //Temperature cutoffs
 #define	TEMPERATURE_CUTOFF_1		    -10
-#define	TEMPERATURE_CUTOFF_2		    5
+#define	TEMPERATURE_CUTOFF_2		    0
 #define	TEMPERATURE_CUTOFF_3		    25
 #define	TEMPERATURE_CUTOFF_4		    45
 #define	TEMPERATURE_CUTOFF_5		    60
