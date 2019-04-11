@@ -14,5 +14,6 @@
 #define TIM_PWM_PERIOD    10000
 
 void task_battery_model();
+void estimation_SOC();
 
 #endif /* BATTERY_MODEL_H_ */
