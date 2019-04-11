@@ -7,6 +7,10 @@
 #include "sd_card.h"
 
 void task_sd_card() {
+
+	uint8_t text0[] = "\n0x000, 0x0000000000000000";
+
+	//uint8_t workBuffer[_MAX_SS];
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_SET);
 	//uint8_t workBuffer[_MAX_SS];
 	if (f_mount(&SDFatFS, (TCHAR const*) SDPath, 0) == FR_OK) {
@@ -20,6 +24,25 @@ void task_sd_card() {
 				task_sd_card_process();
 			}
 		}
+		/*
+		 if (f_open(&SDFileData, "DATA.TXT", FA_OPEN_APPEND | FA_WRITE) == FR_OK) {
+		 f_lseek(&SDFileData, f_size(&SDFileData));
+		 if (f_write(&SDFileData, text0, sizeof(text0), (void *) &wbytes) == FR_OK) {
+		 f_lseek(&SDFileData, f_size(&SDFileData));
+		 if (f_write(&SDFileData, text1, sizeof(text1), (void *) &wbytes) == FR_OK) {
+		 //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+		 f_close(&SDFileData);
+		 }
+		 }
+		 if (f_open(&SDFileSetting, "SETTING.TXT", FA_CREATE_ALWAYS | FA_WRITE) == FR_OK) {
+		 if (f_write(&SDFileSetting, sett0, sizeof(sett0), (void *) &wbytes) == FR_OK) {
+		 //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+		 f_close(&SDFileSetting);
+		 }
+		 }
+		 //f_unlink("STM32.TXT");// delete
+		 }
+		 */
 		//}
 	}
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
