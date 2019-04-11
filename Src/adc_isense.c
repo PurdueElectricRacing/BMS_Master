@@ -35,55 +35,67 @@ void task_getIsense() {
   uint32_t adc_value2;
   int32_t current_value;
 //  adc_toggle = ASSERTED;
-  while (1) {
+  while (1)
+  {
     time_init = xTaskGetTickCount();
     
     //poll for channel 1 adc value
     HAL_ADC_Start(periph.i_adc);
     HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
     adc_value = HAL_ADC_GetValue(periph.i_adc);
-		HAL_ADC_Stop(periph.i_adc);
+    HAL_ADC_Stop(periph.i_adc);
 
     //poll for channel 2 adc value
     HAL_ADC_Start(periph.i_adc);
     HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
     adc_value2 = HAL_ADC_GetValue(periph.i_adc);
     //stop ADC
-		HAL_ADC_Stop(periph.i_adc);
+    HAL_ADC_Stop(periph.i_adc);
 
     //process ADC value
-		current_value = adc_value * 2 * ISENSE_CHANNEL_1 / ISENSE_MAX - ISENSE_CHANNEL_1;
-		//update measured value
-		bms.macros.pack_i.ch1_low_current = current_value * CURRENT_VALUE_OFFSET;
-    //process ADC value
-    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2 / ISENSE_MAX - ISENSE_CHANNEL_2;
+    current_value = adc_value * 2 * ISENSE_CHANNEL_1 * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_1 * CURRENT_VALUE_OFFSET;
     //update measured value
-    bms.macros.pack_i.ch2_high_current = current_value * CURRENT_VALUE_OFFSET;
+    bms.macros.pack_i.ch1_low_current = current_value;
+    //process ADC value
+    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2 * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_2 * CURRENT_VALUE_OFFSET;
+    //update measured value
+    bms.macros.pack_i.ch2_high_current = current_value;
     
 
     //determine current direction
-    if (current_value < 0) {
-      //discharging
-    	if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-    		if (-current_value > bms.params.discharg_lim) {
-					//set error flag
-					bms.fault.DOC = FAULTED;
-				} else {
-					bms.fault.DOC = NORMAL;
-				}
-    		xSemaphoreGive(bms.fault.sem);
-    	}
-    } else {
-      //charging
-    	if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS) {
-				if (current_value > bms.params.charg_lim) {
-					//set error flag
-					bms.fault.COC = FAULTED;
-				} else {
-					bms.fault.COC = NORMAL;
-				}
-    		xSemaphoreGive(bms.fault.sem);
-    	}
+    if (current_value < 0)
+    {
+        //discharging
+        if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS)
+        {
+            if (-current_value > bms.params.discharg_lim)
+            {
+                //set error flag
+                bms.fault.DOC = FAULTED;
+            }
+            else
+            {
+                bms.fault.DOC = NORMAL;
+            }
+            xSemaphoreGive(bms.fault.sem);
+        }
+    }
+    else
+    {
+        //charging
+        if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS)
+        {
+            if (current_value > bms.params.charg_lim)
+            {
+                //set error flag
+                bms.fault.COC = FAULTED;
+            }
+            else
+            {
+                bms.fault.COC = NORMAL;
+            }
+            xSemaphoreGive(bms.fault.sem);
+        }
     }
     
     vTaskDelayUntil(&time_init, ADC_ISENSE_RATE);
