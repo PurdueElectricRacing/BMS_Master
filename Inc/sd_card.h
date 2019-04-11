@@ -18,7 +18,7 @@
 #define SD_CARD_RATE       1000 / portTICK_RATE_MS
 
 void task_sd_card();
-void task_sd_card_process();
-void task_sd_card_get_setting(char m[], int c);
+void sd_card_process();
+void sd_card_get_setting(char m[], int c);
 
 #endif /* SD_CARD_H_ */
