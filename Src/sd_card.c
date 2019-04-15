@@ -18,11 +18,15 @@ void task_sd_card() {
 		if (f_open(&SDFileData, "DATA.TXT", FA_OPEN_APPEND | FA_WRITE) == FR_OK) {
 			f_lseek(&SDFileData, f_size(&SDFileData));
 			HAL_Delay(100);
-			if (f_open(&SDFileSetting, "SETTING.TXT", FA_CREATE_ALWAYS | FA_WRITE)
-					== FR_OK) {
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
+			if (f_open(&SDFileSetting, "SETTING.TXT", FA_READ) == FR_OK) {
 				HAL_Delay(100);
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, GPIO_PIN_RESET);
-				task_sd_card_process();
+				sd_card_setting_init();
+				f_close(&SDFileSetting);
+			}
+			if (f_open(&SDFileSetting, "SETTING.TXT",
+			FA_CREATE_ALWAYS | FA_WRITE | FA_READ) == FR_OK) {
+				sd_card_process();
 			}
 			//}
 		}
@@ -35,7 +39,75 @@ void task_sd_card() {
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
 }
 
-void task_sd_card_process() {
+void sd_card_setting_init() {
+	char f[] = "00, 0x0000\n";
+	char ff[] = "00, 0x00000000\n";
+	int temp = 0;
+	for (int l = 0; l < 12; l++) {
+		switch (l) {
+		case (0):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.temp_high_lim = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (1):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.temp_low_lim = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (2):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.volt_high_lim = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (3):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.volt_low_lim = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (4):
+			f_gets(ff, sizeof(ff), &SDFileSetting);
+			bms.params.discharg_lim = (int) strtol(ff + 4, NULL, 16);
+			break;
+		case (5):
+			f_gets(ff, sizeof(ff), &SDFileSetting);
+			bms.params.charg_lim = (int) strtol(ff + 4, NULL, 16);
+			break;
+		case (6):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.volt_msg_rate = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (7):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.temp_msg_rate = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (8):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.ocv_msg_rate = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (9):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.ir_msg_rate = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (10):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			bms.params.macro_msg_rate = (int) strtol(f + 4, NULL, 16);
+			break;
+		case (11):
+			f_gets(f, sizeof(f), &SDFileSetting);
+			temp = (int) strtol(f + 4, NULL, 16);
+			bms.params.volt_msg_en = ((temp & 0x1) == 0x1) ? ASSERTED : DEASSERTED;
+			bms.params.temp_msg_en =
+					((temp >> 1 & 0x1) == 0x1) ? ASSERTED : DEASSERTED;
+			bms.params.ocv_msg_en =
+					((temp >> 2 & 0x1) == 0x1) ? ASSERTED : DEASSERTED;
+			bms.params.ir_msg_en = ((temp >> 3 & 0x1) == 0x1) ? ASSERTED : DEASSERTED;
+			bms.params.macro_msg_en =
+					((temp >> 4 & 0x1) == 0x1) ? ASSERTED : DEASSERTED;
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void sd_card_process() {
 	uint32_t wbytes;
 	char t0[] = "\n0x111, 0x1111111111111111";
 	char t1[] = "\n0x111, 0x1111111111111111";
@@ -61,8 +133,8 @@ void task_sd_card_process() {
 				switch (msg.file) {
 				case 0:
 					f_close(&SDFileData);
-					for (int d = 0; d < 12; d++){
-						task_sd_card_get_setting(setting, d);
+					for (int d = 0; d < 12; d++) {
+						sd_card_get_setting(setting, d);
 					}
 					f_write(&SDFileSetting, setting, sizeof(setting), (void *) &wbytes);
 					f_close(&SDFileSetting);
@@ -100,7 +172,7 @@ void task_sd_card_process() {
 				a++;
 			}
 		}
-		if(c == 1){
+		if (c == 1) {
 			HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_7);
 		}
 		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
@@ -108,7 +180,7 @@ void task_sd_card_process() {
 	}
 }
 
-void task_sd_card_get_setting(char m[], int c) {
+void sd_card_get_setting(char m[], int c) {
 	char f[] = "0000";
 	char ff[] = "00000000";
 	int x = 0;
