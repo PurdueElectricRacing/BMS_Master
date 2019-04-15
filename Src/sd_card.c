@@ -61,6 +61,9 @@ void task_sd_card_process() {
 				switch (msg.file) {
 				case 0:
 					f_close(&SDFileData);
+					for (int d = 0; d < 12; d++){
+						task_sd_card_get_setting(setting, d);
+					}
 					f_write(&SDFileSetting, setting, sizeof(setting), (void *) &wbytes);
 					f_close(&SDFileSetting);
 					FATFS_UnLinkDriver(SDPath);
@@ -110,7 +113,7 @@ void task_sd_card_get_setting(char m[], int c) {
 	char ff[] = "00000000";
 	int x = 0;
 	int d = 6 + 11 * c;
-	d += 4 * (c >= 4) + 4 * (c >= 5);
+	d += 4 * (c >= 5) + 4 * (c >= 6);
 	switch (c) {
 	case (0):
 		snprintf(f, sizeof(f) + 1, "%04x", bms.params.temp_high_lim);
