@@ -205,6 +205,8 @@ void initBMSobject(flag_t mode) {
   bms.params.volt_msg_en = DEASSERTED;
   bms.params.macro_msg_en = ASSERTED;
   
+  bms.params.passive_en = DEASSERTED;
+
   bms.params.ir_msg_rate = BROADCAST_MS * 10;
 	bms.params.ocv_msg_rate = BROADCAST_MS * 10;
 	bms.params.temp_msg_rate = BROADCAST_MS * 10;

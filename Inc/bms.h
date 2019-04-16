@@ -185,6 +185,9 @@ typedef struct {
   flag_t ir_msg_en; //internal resistance
   flag_t macro_msg_en;
   
+  //Passive State
+  flag_t passive_en;
+
   //rates can be max BROADCAST_RATE hz and can be any integer multiple of that
   uint16_t volt_msg_rate;
   uint16_t temp_msg_rate;
