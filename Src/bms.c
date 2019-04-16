@@ -156,6 +156,7 @@ void initRTOSObjects() {
 //  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
   xTaskCreate(task_getIsense, "ADC Current Sense", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
   xTaskCreate(task_demo_PWM, "PWM DEMO", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
+  xTaskCreate(task_charging, "Charging", CHARG_STACK_SIZE, NULL, CHARG_PRIORITY, NULL);
 }
 
 /***************************************************************************

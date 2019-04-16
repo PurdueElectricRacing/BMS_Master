@@ -21,6 +21,7 @@
 #include "adc_isense.h"
 #include "tim_fan_pwm.h"
 #include "sd_card.h"
+#include "charging.h"
 
 #define NUM_SLAVES        1 //how many slaves are hooked up to the system
 #define NUM_VTAPS         6 //number of voltage taps per module
