@@ -331,6 +331,9 @@ Success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
       case MACRO_MSG_RATE:
         bms.params.macro_msg_rate = byte_combine(rx_can->Data[1], rx_can->Data[2]);
         break;
+      case PASSIVE_EN:
+        bms.params.passive_en = byte_combine(rx_can->Data[1], rx_can->Data[2]);
+        break;
     }
     xSemaphoreGive(bms.params.sem);
   } else {
@@ -419,6 +422,10 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[1] |= bitwise_or(CONFIG_OCV_MSG_SHIFT, CONFIG_OCV_MSG_MASK, bms.params.ocv_msg_en);
       msg.Data[1] |= bitwise_or(CONFIG_IR_MSG_SHIFT, CONFIG_IR_MSG_MASK, bms.params.ir_msg_en);
       msg.Data[1] |= bitwise_or(CONFIG_MACRO_MSG_SHIFT, CONFIG_MACRO_MSG_MASK, bms.params.macro_msg_en);
+      msg.Data[2] = 0;
+      break;
+    case PASSIVE_EN:
+      msg.Data[1] = (uint8_t) bms.params.passive_en;
       msg.Data[2] = 0;
       break;
   }

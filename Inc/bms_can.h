@@ -17,7 +17,7 @@
 //ID Master -> Slave
 #define ID_BMS_WAKEUP         0x600
 #define ID_MAS_CONFIG         0x601
-#define ID_MAS_PASSIVE        0x603
+#define ID_MAS_PASSIVE        0x603 //passive balancing Message
 #define ID_WDAWG              0x604
 
 //ID Slave -> Master
