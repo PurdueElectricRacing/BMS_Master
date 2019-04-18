@@ -35,7 +35,7 @@ void task_coulomb_counting() {
   //inputs
   int32_t I_instant = bms.macros.pack_i.ch1_low_current;            //unit 0.1 A
   uint16_t V_instant = bms.macros.pack_volt;                        //unit 0.1 mV
-  int16_t T_instant = bms.macros.high_temp.val;                     //unit 0.1 C
+  int16_t T_instant = bms.macros.temp_avg;                     //unit 0.1 C
   uint8_t N_parallel = bms.cell_config.N_parallel;                  //# parallel cell
   uint8_t capacity = bms.cell_config.rated_capacity;                //unit 0.1 Ah
   uint16_t C_rated = N_parallel * capacity;                         //unit 0.1 Ah
@@ -58,7 +58,7 @@ void task_coulomb_counting() {
         I_instant = bms.macros.pack_i.ch2_high_current;
     }
     V_instant = bms.macros.pack_volt;
-    T_instant = bms.macros.high_temp.val;
+    T_instant = bms.macros.temp_avg;
 
 
     //Discharge mode
@@ -99,8 +99,7 @@ void task_coulomb_counting() {
     }
 
     //Thermal effects
-    //TODO: currently T_instant is taken from highest temperature cell in the module
-    //		should probably take the average temperature of the whole module
+    //T_instant is taken from average temperature in the module
     if (T_instant <= TEMPERATURE_CUTOFF_1)
     {
         a = 0.6;

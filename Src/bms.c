@@ -231,7 +231,7 @@ void initBMSobject(flag_t mode) {
   bms.macros.soh = 0;
   bms.macros.high_temp.val = LIMIT_TEMP_LOW;
   bms.macros.low_temp.val = LIMIT_VOLT_HIGH;
-  bms.macros.avg_temp = AVG_TEMP_INIT;
+  bms.macros.temp_avg = TEMP_AVG_INIT;
   bms.macros.high_volt.val = LIMIT_VOLT_LOW;
   bms.macros.low_volt.val = LIMIT_VOLT_HIGH;
   
@@ -717,7 +717,7 @@ Success_t temp_probe() {
   }
   //calculate average temperature across the module
   temp_avg = temp_avg / NUM_SLAVES / NUM_TEMP;
-  bms.macros.avg_temp = temp_avg;
+  bms.macros.temp_avg = temp_avg;
   
   //safety check
   //undervolt check

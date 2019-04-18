@@ -39,7 +39,7 @@
 #define VOLT_HIGH_IMPOS   0xFFFF    //6.3 volts
 #define TEMP_HIGH_IMPOS   0x7FFF    //3200 degrees
 #define TEMP_LOW_IMPOS    0x8000    //-3200 degrees
-#define AVG_TEMP_INIT     200       //20 degrees C
+#define TEMP_AVG_INIT     200       //20 degrees C
 
 //Delays
 #define DELAY_SLAVE_CON 500 / portTICK_RATE_MS //time between checking if all slaves are connected
@@ -224,7 +224,7 @@ typedef struct {
   pack_i_t pack_i;              //0.1 A
   cell_temp_t high_temp;        //0.1 degree C
   cell_temp_t low_temp;
-  int16_t avg_temp;
+  int16_t temp_avg;
   cell_volt_t high_volt;
   cell_volt_t low_volt;
   
