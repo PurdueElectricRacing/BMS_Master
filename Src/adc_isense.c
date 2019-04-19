@@ -53,11 +53,11 @@ void task_getIsense() {
     HAL_ADC_Stop(periph.i_adc);
 
     //process ADC value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_1 * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_1 * CURRENT_VALUE_OFFSET;
+    current_value = adc_value * 2 * ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET;
     //update measured value
     bms.macros.pack_i.ch1_low_current = current_value;
     //process ADC value
-    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2 * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_2 * CURRENT_VALUE_OFFSET;
+    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET;
     //update measured value
     bms.macros.pack_i.ch2_high_current = current_value;
     
@@ -180,7 +180,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   if (adc_toggle == ASSERTED) {
     adc_toggle = DEASSERTED;
     //process adc value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_1 / ISENSE_MAX - ISENSE_CHANNEL_1;
+    current_value = adc_value * 2 * ISENSE_CHANNEL_1_MAX / ISENSE_MAX - ISENSE_CHANNEL_1_MAX;
     //update measured value
     bms.macros.pack_i.ch1_low_current = current_value * CURRENT_VALUE_OFFSET;
   }
@@ -188,7 +188,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc) {
   else {
     adc_toggle = ASSERTED;
     //process adc value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_2 / ISENSE_MAX - ISENSE_CHANNEL_2;
+    current_value = adc_value * 2 * ISENSE_CHANNEL_2_MAX / ISENSE_MAX - ISENSE_CHANNEL_2_MAX;
     bms.macros.pack_i.ch2_high_current = current_value * CURRENT_VALUE_OFFSET;
   }
   
