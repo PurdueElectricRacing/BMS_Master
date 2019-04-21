@@ -322,7 +322,6 @@ void task_bms_main() {
   initBMSobject(DEASSERTED);
   while (1) {
     time_init = xTaskGetTickCount();
-    i++;
     switch (bms.state) {
       case INIT:
         debug_lights(0, 0, 0, 1);

@@ -7,7 +7,7 @@
 
 #include "charging.h"
 
-void calc_avg_voltage(int* modules, int* min_mod);
+void calc_avg_voltage(uint16_t* modules, uint16_t* min_mod);
 void write_passive_msg(uint8_t slave_id, flag_t passive_bal);
 
 void task_charging() {
@@ -26,7 +26,7 @@ void task_charging() {
       //check if delta greater than DELTA Volts
       for (x = 0; x < NUM_SLAVES; x++) {
         //not the min module check the delta
-        delta = modules[x] - min_volt[1];
+        delta = modules[x] - min_volt;
         if (delta > DELTA_VOLT) {
           //enable passive balancing
           write_passive_msg(x, ASSERTED);
@@ -64,7 +64,7 @@ void task_charging() {
 *     Function Description: calculates the average voltage of each module and stores
 *     that in an array given by the calling function
 ***************************************************************************/
-void calc_avg_voltage(int* modules, int* min_mod) {
+void calc_avg_voltage(uint16_t* modules, uint16_t* min_mod) {
   uint8_t x = 0;
   uint8_t i = 0;
   uint16_t volt_avg = 0;

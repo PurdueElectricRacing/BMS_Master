@@ -605,7 +605,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin|RESET_LATCH_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, BLUE_LED_Pin|GREEN_LED_Pin|RED_LED_Pin|ORANGE_LED_Pin, GPIO_PIN_RESET);
@@ -616,8 +616,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : WDI_Pin SDC_BMS_FAULT_Pin LPM_Pin */
-  GPIO_InitStruct.Pin = WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin;
+  /*Configure GPIO pins : WDI_Pin SDC_BMS_FAULT_Pin LPM_Pin RESET_LATCH_Pin */
+  GPIO_InitStruct.Pin = WDI_Pin|SDC_BMS_FAULT_Pin|LPM_Pin|RESET_LATCH_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
