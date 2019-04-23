@@ -139,7 +139,7 @@ void initRTOSObjects() {
   bms.q_rx_bmscan = xQueueCreate(BMSCAN_TX_Q_SIZE, sizeof(CanTxMsgTypeDef));
   bms.q_tx_bmscan = xQueueCreate(BMSCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   bms.q_rx_dcan   = xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
-  bms.q_tx_dcan   = xQueueCreate(DCAN_RX_Q_SIZE, sizeof(CanRxMsgTypeDef));
+  bms.q_tx_dcan   = xQueueCreate(DCAN_TX_Q_SIZE, sizeof(CanRxMsgTypeDef));
   
   //start tasks
   xTaskCreate(task_Slave_WDawg, "Master WDawg", WDAWG_STACK_SIZE, NULL, WDAWG_PRIORITY, NULL);
@@ -309,15 +309,8 @@ void initBMSobject(flag_t mode) {
 ***************************************************************************/
 void task_bms_main() {
   uint8_t i = 0;
-  
+  CanTxMsgTypeDef msg;
   TickType_t time_init = 0;
-//  debug_lights(0,0,0,1);
-//  HAL_Delay(500);
-//  debug_lights(0,0,1,1);
-//  HAL_Delay(500);
-//  debug_lights(0,1,1,1);
-//  HAL_Delay(500);
-//  debug_lights(1,1,1,1);
   bms.state = INIT;
   initBMSobject(DEASSERTED);
   while (1) {
@@ -386,6 +379,17 @@ void task_bms_main() {
         break;
     }
     
+    msg.IDE = CAN_ID_STD;
+    msg.RTR = CAN_RTR_DATA;
+    msg.DLC = 1; //one for the macro faults
+    msg.StdId = 0x300;
+
+    msg.Data[0] = (uint8_t) bms.state;
+
+    if (i++ % 5 == 0) {
+      xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
+    }
+
     vTaskDelayUntil(&time_init, BMS_MAIN_RATE);
   }
 }
@@ -548,7 +552,7 @@ Success_t send_faults() {
     }
   }
   
-  xQueueSendToBack(bms.q_tx_dcan, &msg, 100); //todo DCAN
+  xQueueSendToBack(bms.q_tx_bmscan, &msg, 100); //todo DCAN
   return SUCCESSFUL;
 }
 

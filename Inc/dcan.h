@@ -50,7 +50,7 @@
 
 //rates
 #define DCAN_TX_RATE    5 / portTICK_RATE_MS //send at 200Hz
-#define DCAN_RX_RATE    50 / portTICK_RATE_MS //send at 20Hz
+#define DCAN_RX_RATE    5 / portTICK_RATE_MS //send at 20Hz
 #define BROADCAST_MS    50
 #define BROADCAST_RATE  BROADCAST_MS / portTICK_RATE_MS //fastest broadcast is 20hz
 //used to keep canrxq from overflowing
@@ -65,7 +65,7 @@
 
 //RX Process RTOS
 #define DCAN_RX_STACK_SIZE   128
-#define DCAN_RX_Q_SIZE       8
+#define DCAN_RX_Q_SIZE       30
 #define DCAN_RX_PRIORITY     1
 
 //Broadcast RTOS

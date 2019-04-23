@@ -46,18 +46,20 @@ void task_getIsense() {
     HAL_ADC_Stop(periph.i_adc);
 
     //poll for channel 2 adc value
-    HAL_ADC_Start(periph.i_adc);
-    HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
-    adc_value2 = HAL_ADC_GetValue(periph.i_adc);
-    //stop ADC
-    HAL_ADC_Stop(periph.i_adc);
+//    HAL_ADC_Start(periph.i_adc);
+//    HAL_ADC_PollForConversion(periph.i_adc, TIMEOUT);
+//    adc_value2 = HAL_ADC_GetValue(periph.i_adc);
+//    //stop ADC
+//    HAL_ADC_Stop(periph.i_adc);
 
     //process ADC value
-    current_value = adc_value * 2 * ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET;
+//    current_value = adc_value * 2 * ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_1_MAX * CURRENT_VALUE_OFFSET;
+    current_value = (((float) adc_value * .0575) - 130) * CURRENT_VALUE_OFFSET;
     //update measured value
     bms.macros.pack_i.ch1_low_current = current_value;
     //process ADC value
-    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET;
+//    current_value = adc_value2 * 2 * ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET / ISENSE_MAX - ISENSE_CHANNEL_2_MAX * CURRENT_VALUE_OFFSET;
+//    current_value = 0;
     //update measured value
     bms.macros.pack_i.ch2_high_current = current_value;
     
