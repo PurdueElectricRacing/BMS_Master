@@ -123,9 +123,9 @@ void task_Slave_WDawg() {
     } else {
       //semaphore not acquired
     }
-    if (bms.state == NORMAL_OP) {
-      xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
-    }
+//    if (bms.state == NORMAL_OP) {
+    xQueueSendToBack(bms.q_tx_bmscan, &msg, TIMEOUT);
+//    }
     
     vTaskDelayUntil(&time_init, WDAWG_RATE);
   }
@@ -259,17 +259,17 @@ Success_t process_temp(CanRxMsgTypeDef* rx) {
   
   int16_t temp1 = byte_combine((uint16_t) rx->Data[2], (uint16_t) rx->Data[3]);
   int16_t temp2 = byte_combine((uint16_t) rx->Data[4], (uint16_t) rx->Data[5]);
-  int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
+//  int16_t temp3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
   
   //update the table //todo check to make sure we don't go over array bounds...
-  if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
+//  if (xSemaphoreTake(bms.temp.sem, TIMEOUT) == pdPASS) {
     bms.temp.data[slave][loc++] = temp1;
     bms.temp.data[slave][loc++] = temp2;
-    bms.temp.data[slave][loc] = temp3;
-    xSemaphoreGive(bms.temp.sem);
-  } else {
-    status = FAILURE;
-  }
+//    bms.temp.data[slave][loc] = temp3;
+//    xSemaphoreGive(bms.temp.sem);
+//  } else {
+//    status = FAILURE;
+//  }
   
   return status;
 }

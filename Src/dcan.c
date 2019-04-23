@@ -144,7 +144,8 @@ void task_broadcast() {
   uint16_t i = 0;
   while (1) {
     time_init = xTaskGetTickCount();
-    if (bms.state == NORMAL_OP) {
+//    if (bms.state == NORMAL_OP)
+    {
       if (bms.params.volt_msg_en == ASSERTED) {
         if (execute_broadcast(bms.params.volt_msg_rate, i)) {
           send_volt_msg();
