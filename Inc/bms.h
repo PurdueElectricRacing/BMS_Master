@@ -54,14 +54,18 @@
 #define BMS_MAIN_PRIORITY           3
 #define ERROR_CHECK_STACK_SIZE      128
 #define ERROR_CHECK_RATE_PRIORITY   1
-#define ADC_STACK_SIZE        128
-#define ADC_PRIORITY        1
+#define ADC_STACK_SIZE              128
+#define ADC_PRIORITY                1
+#define FAN_STACK_SIZE              64
+#define FAN_PRIORITY                1
+#define COULOMB_STACK_SIZE          128
+#define COULOMB_PRIORITY            1
 
 #define HEARTBEAT_RATE              750 / portTICK_RATE_MS
 #define BMS_MAIN_RATE               20 / portTICK_RATE_MS
 #define ERROR_CHECK_RATE            500 / portTICK_RATE_MS
 #define ADC_ISENSE_RATE             50 / portTICK_RATE_MS
-#define FAN_PWM_RATE                100 / portTICK_RATE_MS
+#define FAN_PWM_RATE                500 / portTICK_RATE_MS
 #define COULOMB_COUNTING_RATE       100 / portTICK_RATE_MS
 
 #define POWER_LOSS_PIN      10
