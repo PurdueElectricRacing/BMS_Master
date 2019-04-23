@@ -11,7 +11,7 @@
 *
 *     Function Information
 *
-*     Name of Function: task_getIsense
+*     Name of Function: task_fan_PWM
 *
 *     Programmer's Name: Josh Shao
 *
@@ -26,24 +26,22 @@
 *     Function Description:
 *
 ***************************************************************************/
-void task_demo_PWM() {
+void task_fan_PWM() {
   TickType_t time_init = 0;
   uint32_t duty_percentage = 50;
-  int32_t temp;
+  int16_t temp;
   master_tim_pwm_set_duty(periph.tim, 0);
   HAL_TIM_PWM_Start(periph.tim, TIM_CHANNEL_1);
   while (1) {
-    //set PWM value based on current value
-    temp = bms.macros.pack_i.ch2_high_current;
-    if (temp < 0) {
-      duty_percentage = 50;
-    } else if (temp < 1000) {
+    //set PWM value based on temperature value
+    temp = bms.macros.temp_avg;
+    if (temp < 200) {
+      duty_percentage = 0;
+    } else if (temp < 250) {
+      duty_percentage = 30;
+    } else if (temp < 450) {
       duty_percentage = 60;
-    } else if (temp < 2000) {
-      duty_percentage = 70;
-    } else if (temp < 3000) {
-      duty_percentage = 80;
-    } else if (temp < 4000) {
+    } else if (temp < 600) {
       duty_percentage = 90;
     } else {
       duty_percentage = 100;

@@ -155,7 +155,8 @@ void initRTOSObjects() {
               ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
 //  xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
   xTaskCreate(task_getIsense, "ADC Current Sense", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
-  xTaskCreate(task_demo_PWM, "PWM DEMO", ADC_STACK_SIZE, NULL, ADC_PRIORITY, NULL);
+  xTaskCreate(task_fan_PWM, "Fan PWM", FAN_STACK_SIZE, NULL, FAN_PRIORITY, NULL);
+  xTaskCreate(task_coulomb_counting, "Coulomb Counting", COULOMB_STACK_SIZE, NULL, COULOMB_PRIORITY, NULL);
   xTaskCreate(task_charging, "Charging", CHARG_STACK_SIZE, NULL, CHARG_PRIORITY, NULL);
 }
 
