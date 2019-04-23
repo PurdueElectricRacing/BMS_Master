@@ -1,12 +1,15 @@
 #MicroXplorer Configuration settings - do not modify
 ADC1.Channel-0\#ChannelRegularConversion=ADC_CHANNEL_1
+ADC1.Channel-1\#ChannelRegularConversion=ADC_CHANNEL_2
 ADC1.ClockPrescaler=ADC_CLOCK_SYNC_PCLK_DIV8
 ADC1.ContinuousConvMode=ENABLE
-ADC1.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,NbrOfConversionFlag,master,ScanConvMode,ContinuousConvMode,NbrOfConversion,ClockPrescaler
-ADC1.NbrOfConversion=1
+ADC1.IPParameters=Rank-0\#ChannelRegularConversion,Channel-0\#ChannelRegularConversion,SamplingTime-0\#ChannelRegularConversion,NbrOfConversionFlag,master,ScanConvMode,ContinuousConvMode,NbrOfConversion,ClockPrescaler,Rank-1\#ChannelRegularConversion,Channel-1\#ChannelRegularConversion,SamplingTime-1\#ChannelRegularConversion
+ADC1.NbrOfConversion=2
 ADC1.NbrOfConversionFlag=1
 ADC1.Rank-0\#ChannelRegularConversion=1
+ADC1.Rank-1\#ChannelRegularConversion=2
 ADC1.SamplingTime-0\#ChannelRegularConversion=ADC_SAMPLETIME_480CYCLES
+ADC1.SamplingTime-1\#ChannelRegularConversion=ADC_SAMPLETIME_480CYCLES
 ADC1.ScanConvMode=ADC_SCAN_ENABLE
 ADC1.master=1
 CAN1.ABOM=ENABLE
@@ -440,7 +443,7 @@ RCC.VcooutputI2S=48000000
 RCC.WatchDogFreq_Value=32000
 SH.ADCx_IN1.0=ADC1_IN1,IN1
 SH.ADCx_IN1.ConfNb=1
-SH.ADCx_IN2.0=ADC1_IN2
+SH.ADCx_IN2.0=ADC1_IN2,IN2
 SH.ADCx_IN2.ConfNb=1
 SH.GPXTI10.0=GPIO_EXTI10
 SH.GPXTI10.ConfNb=1
