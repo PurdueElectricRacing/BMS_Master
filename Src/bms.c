@@ -583,6 +583,7 @@ Success_t volt_probe() {
   cell_volt_t temp_max;
   cell_volt_t temp_low;
   
+  int32_t volt_of_pack = 0;
   temp_max.index[0] = 0;
   temp_max.index[1] = 0;
   temp_max.val = VOLT_LOW_IMPOS;
@@ -595,6 +596,7 @@ Success_t volt_probe() {
     for (x = 0; x < NUM_VTAPS; x++) {
       if (bms.vtaps.data[i][x] != VOLT_LOW_IMPOS) {
         //valid voltage data
+        volt_of_pack += bms.vtaps.data[i][x];
         if (bms.vtaps.data[i][x] > temp_max.val) {
           temp_max.val = bms.vtaps.data[i][x];
           temp_max.index[0] = i;
@@ -610,6 +612,7 @@ Success_t volt_probe() {
     }
   }
   
+  bms.macros.pack_volt = (uint32_t) volt_of_pack;
   //safety check
   //undervolt check
   if (temp_low.val < bms.params.volt_low_lim) {

@@ -38,7 +38,7 @@ void task_fan_PWM() {
     if (temp < 200) {
       duty_percentage = 0;
     } else if (temp < 250) {
-      duty_percentage = 30;
+      duty_percentage = 0;
     } else if (temp < 450) {
       duty_percentage = 60;
     } else if (temp < 600) {

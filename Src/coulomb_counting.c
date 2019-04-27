@@ -28,15 +28,17 @@
 void task_coulomb_counting() {
   TickType_t time_init = 0;
 
-  //CONSTANTS
-  int16_t V_min = bms.params.volt_low_lim;
-  int16_t V_max = bms.params.volt_high_lim;
+  //TODO: need to remove this after final demo
+  bms.cell_config.rated_capacity = 30;
+  bms.cell_config.N_parallel = 1;
+  bms.cell_config.N_series = 12;
 
   //inputs
   int32_t I_instant = bms.macros.pack_i.ch1_low_current;            //unit 0.1 A
-  uint16_t V_instant = bms.macros.pack_volt;                        //unit 0.1 mV
-  int16_t T_instant = bms.macros.temp_avg;                     //unit 0.1 C
+  uint32_t V_instant = bms.macros.pack_volt;                        //unit 0.1 mV
+  int16_t T_instant = bms.macros.temp_avg;                          //unit 0.1 C
   uint8_t N_parallel = bms.cell_config.N_parallel;                  //# parallel cell
+  uint8_t N_series = bms.cell_config.N_series;                      //# parallel cell
   uint8_t capacity = bms.cell_config.rated_capacity;                //unit 0.1 Ah
   uint16_t C_rated = N_parallel * capacity;                         //unit 0.1 Ah
   C_rated = C_rated * HOUR_TO_SECOND;                               //unit 0.1 As
@@ -44,6 +46,10 @@ void task_coulomb_counting() {
   double SOH = bms.macros.soh / 2;                                  //unit %
   double DOD = bms.macros.dod / 2;                                  //unit %
   uint8_t dt = COULOMB_COUNTING_RATE * portTICK_RATE_MS;            //unit ms
+
+  //CONSTANTS
+  uint32_t V_min = bms.params.volt_low_lim * N_series;
+  uint32_t V_max = bms.params.volt_high_lim * N_series;
 
   //Temporary variables
   double d_DOD;                                                     //unit %
@@ -128,7 +134,7 @@ void task_coulomb_counting() {
 
     //Update value to bms macros
     //TODO: does not take into account of the battery model SOC estimation
-    bms.macros.soc = (int) SOC * 2;
+    bms.macros.soc = (int) SOC * 2 * 100000000;
     bms.macros.soh = (int) SOH * 2;
     bms.macros.dod = (int) DOD * 2;
 

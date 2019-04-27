@@ -472,13 +472,13 @@ Success_t send_macro_msg() {
   msg.DLC = MACRO_MSG_LENGTH;
   msg.StdId = ID_MASTER_MACRO_MSG;
   msg.Data[0] = bms.macros.soc;
-  msg.Data[1] = extract_MSB(bms.macros.pack_volt);
-  msg.Data[2] = extract_LSB(bms.macros.pack_volt);
-  msg.Data[3] = extract_MSB(bms.macros.pack_i.ch2_high_current);
-  msg.Data[4] = extract_LSB(bms.macros.pack_i.ch2_high_current);
-  msg.Data[5] = extract_MSB(bms.macros.high_temp.val);
-  msg.Data[6] = extract_LSB(bms.macros.high_temp.val);
-  msg.Data[7] = 0;
+  msg.Data[1] = (uint8_t) (bms.macros.pack_volt >> 16);
+  msg.Data[2] = (uint8_t) (bms.macros.pack_volt >> 8) & 0xFF;
+  msg.Data[3] = (uint8_t) bms.macros.pack_volt;
+  msg.Data[4] = extract_MSB(bms.macros.pack_i.ch1_low_current);
+  msg.Data[5] = extract_LSB(bms.macros.pack_i.ch1_low_current);
+  msg.Data[6] = extract_MSB(bms.macros.high_temp.val);
+  msg.Data[7] = extract_LSB(bms.macros.high_temp.val);
   
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
     status = FAILURE;

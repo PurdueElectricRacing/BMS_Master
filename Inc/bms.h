@@ -22,8 +22,9 @@
 #include "tim_fan_pwm.h"
 #include "sd_card.h"
 #include "charging.h"
+#include "coulomb_counting.h"
 
-#define NUM_SLAVES        1 //how many slaves are hooked up to the system
+#define NUM_SLAVES        2 //how many slaves are hooked up to the system
 #define NUM_VTAPS         6 //number of voltage taps per module
 #define NUM_TEMP          2 //number of thermistors per module
 #define NUM_NORMAL_TASKS  2 //number of tasks that aren't normal
@@ -224,7 +225,7 @@ typedef struct {
   uint8_t soc;                  //0.5%
   uint8_t soh;                  //0.5%
   uint8_t dod;                  //0.5%
-  uint16_t pack_volt;           //0.1 mV
+  uint32_t pack_volt;           //0.1 mV
   pack_i_t pack_i;              //0.1 A
   cell_temp_t high_temp;        //0.1 degree C
   cell_temp_t low_temp;
@@ -240,6 +241,7 @@ typedef struct {
 typedef struct {
   uint8_t rated_capacity;           //rated capacity of the cell
   uint8_t N_parallel;               //number of parallel cell
+  uint8_t N_series;               //number of parallel cell
 }cell_config_t;
 
 //Main BMS structure that holds can handles and all of the queues
