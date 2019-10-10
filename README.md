@@ -1,4 +1,4 @@
-# **BMS Master**
+# **BMS Master** 
 
 ## **Overview**
 The main functionality of the BMS Master includes:
@@ -22,20 +22,20 @@ The BMS slave STM32 uses FreeRTOS to manage scheduling and execution of code. By
 
 Upon startup, BMS Master will first go through an initialization phase detailed below. After that, the following tasks will be started:
 
-- task_Slave_WDawg
-- task_txBmsCan
-- task_BmsCanProcess
-- task_txDcan
-- task_DcanProcess
-- task_bms_main
-- task_heartbeat
-- task_broadcast
-- task_error_check
-- task_sd_card
-- task_getIsense
-- task_fan_PWM
-- task_coulomb_counting
-- task_charging
+- `task_Slave_WDawg`
+- `task_txBmsCan`
+- `task_BmsCanProcess`
+- `task_txDcan`
+- `task_DcanProcess`
+- `task_bms_main`
+- `task_heartbeat`
+- `task_broadcast`
+- `task_error_check`
+- `task_sd_card`
+- `task_getIsense`
+- `task_fan_PWM`
+- `task_coulomb_counting`
+- `task_charging`
 
 ## **Initialization**
 Upon startup, BMS Master will first intialize the peripherals used, namely:
@@ -101,3 +101,4 @@ This task reads the `rx_dcan` queue and process the message accordingly. There a
   - `BROAD_CONFIG` (if ir, ocv, temp, volt and macro are enabled)
   - `PASSIVE_EN` (is passive balancing is enabled)
 
+<sub>last updated: 10/10/19 by Tan Li Yon</sub>
