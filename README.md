@@ -98,7 +98,7 @@ This task reads the `rx_dcan` queue and process the message accordingly. There a
   - `SOC_VALUE`, `SOH_VALUE`
   - `PACK_VOLTAGE`, `PACK_CURRENT`
   - `HIGH_TEMP` (highest temperature recorded)
-  - `BROAD_CONFIG` (if ir, ocv, temp, volt and macro are enabled)
-  - `PASSIVE_EN` (is passive balancing is enabled)
+  - `BROAD_CONFIG` (if ir, ocv, temp, volt and macro messages are enabled)
+  - `PASSIVE_EN` (if passive balancing is enabled)
 
 <sub>last updated: 10/10/19 by Tan Li Yon</sub>
