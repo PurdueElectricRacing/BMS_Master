@@ -40,11 +40,11 @@ Upon startup, BMS Master will first go through an initialization phase detailed 
 ## **Initialization**
 Upon startup, BMS Master will first intialize the peripherals used, namely:
 
-- MX_GPIO_Init()
-- MX_CAN1_Init()
-- MX_CAN3_Init()
-- MX_TIM1_Init()
-- MX_SDMMC1_SD_Init() (Will be changed to SDIO)
+- `MX_GPIO_Init()`
+- `MX_CAN1_Init()`
+- `MX_CAN3_Init()`
+- `MX_TIM1_Init()`
+- `MX_SDMMC1_SD_Init()` (Will be changed to SDIO)
 
 CAN1 is used as DCAN which receives and transmits data from the GUI to BMS Master. CAN3 is used as BMS_CAN which receives data from the BMS SLAVE.
 
