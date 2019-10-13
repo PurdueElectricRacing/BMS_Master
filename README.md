@@ -45,12 +45,16 @@ Upon startup, BMS Master will first intialize the peripherals used, namely:
 - `MX_CAN3_Init()`
 - `MX_TIM1_Init()`
 - `MX_SDMMC1_SD_Init()` (Will be changed to SDIO)
+- `MX_DMA_Init()`
+- `MX_ADC1_Init()`
 
 CAN1 is used as DCAN which receives and transmits data from the GUI to BMS Master. CAN3 is used as BMS_CAN which receives data from the BMS SLAVE.
 
 TIM is used to set the duty cycle of the fan using Pulse Width Modulation (PWM) depending on the temperature reading of the slaves.
 
 SDIO is used to read and write from the SD Card on BMS Master.
+
+ADC is used to read battery charging/discharging current value from the current transducer.
 
 ## **Tasks**
 ### **task_Slave_WDawg**
@@ -81,7 +85,7 @@ This task reads the `rx_dcan` queue and process the message accordingly. There a
   - `DELETE`: delete data from the SD card.
   - `CONFIGURE`: enable CAN messages about internal resistance (ir), open circuit voltage (ocv), temperature, voltage or macro.
   
-- Case 2: `BME_RESET`. Assert `bms.fault.clear`, which will reset all the faults of the BMS by `task_bms_main`.
+- Case 2: `BMS_RESET`. Assert `bms.fault.clear`, which will reset all the faults of the BMS by `task_bms_main`.
 
 - Case 3: `PARAM_SET`. Set one of the following parameters based on the input from GUI.
   - `TEMP_HIGH_LIMIT`, `TEMP_LOW_LIMIT`
@@ -101,4 +105,79 @@ This task reads the `rx_dcan` queue and process the message accordingly. There a
   - `BROAD_CONFIG` (if ir, ocv, temp, volt and macro messages are enabled)
   - `PASSIVE_EN` (if passive balancing is enabled)
 
-<sub>last updated: 10/10/19 by Tan Li Yon</sub>
+### **task_bms_main**
+This is the main state transition process of the BMS which intializes all parameters and handle error and shutdown process. At the start, the BMS will initialize all parameters, then go into either one of these states, with `INIT` being the first. This task also add the `bms.state` to the `bms.q_tx_bmscan` from time to time.
+
+- State 1: `INIT`
+  - Initializes all the parameters of the BMS.
+  - Close the Shut Down Circuit (SDC).
+  - Transition into the `BMS_CONNECT` state.
+  
+- State 2: `BMS_CONNECT`
+  - Sends CAN messages to each slave to power on while connection is not established.
+  - Transition into the `NORMAL_OP` state.
+  
+- State 3: `NORMAL_OP`
+  - So far nothing yet...
+ 
+- State 4: `ERROR_BMS`
+  - Checks `bms.fault.overall` to see if fault is cleared, and go back to `NORMAL_OP` if it is.
+  - Checks the `bms.fault.clear` to see if the GUI commands that the faults be cleared. If it is asserted, clear all faults and go back to `INIT`.
+  - If clear not asserted and fault is not cleared, open the SDC and send all faults to GUI.
+ 
+- State 5: `SHUTDOWN`
+  - Send CAN message to each slave to shutdown.
+
+### **task_heartbeat**
+Toggles a gpio at `HEARTBEAT_RATE` to satisfy the watchdog timer.
+
+### **task_broadcast**
+Sends CAN messages for available ir, ocv, volt, temp or macro when:
+- That specific message type is enabled.
+- The counter matches the specific message rate.
+
+### **task_error_check**
+This task first probe for the high and low temp and volt then checks the possible places for error and fault the BMS if it occurs. The possible places are:
+
+- `bms_fault`
+  - charge_en, discharge_en
+  - overtemp, undertemp
+  - overvolt, undervolt
+  - DOC, SOC
+- `bms.fault.slave`
+  - connected
+  - temp_sense
+  - volt_sense
+
+If fault is found, this will send the BMS to the `ERROR_BMS` state and set `bms.fault.overall` to be `FAULTED`.
+
+### **task_getIsense**
+This task will do 3 things:
+
+- Reads in 2 current values from the current transducer - channel 1 which goes up to +- 75A and channel 2 which goes to +- 500A.
+- Update the `bms.macros.pack_i.ch1_low_current` to current at channel 1 and `bms.macros.pack_i.ch2_low_current` to current at channel 2 value.
+- Check for charging or discharging over current fault, and fault the BMS is detected.
+
+### **task_fan_PWM**
+This task sets the duty cycle of the pwm which drives the fan according to `bms.macros.temp_avg`.
+
+### **task_coulomb_counting**
+This task calculates and updates the SoC and SoH value using the coulomb counting method which takes into account the following factors:
+
+- Instantaneous current
+- Open Circuit Voltage
+- Self discharing
+- Temperature
+
+Further reading about coulomb_counting can be found below.
+
+### **task_charging**
+This task scans throught the slaves and if `modules[x] - min_volt > DELTA_VOLT`, send balancing message to the specific slave.
+
+## **References**
+[Google Drive Link](https://drive.google.com/drive/u/0/folders/10BhgTpdeEc__XZ9EmfNQqM7rGZ7nbBgL)
+[CAN Messages](https://docs.google.com/spreadsheets/d/1AIsM6NNCoJiR2NbtGhZPkIug68hO--Kt/edit#gid=930516311)
+[Isense Datasheet] (https://www.electronicsdatasheets.com/manufacturers/lem/parts/dhab-s24#datasheet)
+[Papers about coulomb counting](https://drive.google.com/drive/u/0/folders/1brrGmAbWCBpCmF5a4roTPAF_cTrg1yqj)
+
+<sub>last updated: 10/13/19 by Tan Li Yon</sub>
