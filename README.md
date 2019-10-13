@@ -176,8 +176,11 @@ This task scans throught the slaves and if `modules[x] - min_volt > DELTA_VOLT`,
 
 ## **References**
 [Google Drive Link](https://drive.google.com/drive/u/0/folders/10BhgTpdeEc__XZ9EmfNQqM7rGZ7nbBgL)
+
 [CAN Messages](https://docs.google.com/spreadsheets/d/1AIsM6NNCoJiR2NbtGhZPkIug68hO--Kt/edit#gid=930516311)
-[Isense Datasheet] (https://www.electronicsdatasheets.com/manufacturers/lem/parts/dhab-s24#datasheet)
+
+[Isense Datasheet](https://www.electronicsdatasheets.com/manufacturers/lem/parts/dhab-s24#datasheet)
+
 [Papers about coulomb counting](https://drive.google.com/drive/u/0/folders/1brrGmAbWCBpCmF5a4roTPAF_cTrg1yqj)
 
 <sub>last updated: 10/13/19 by Tan Li Yon</sub>
