@@ -172,7 +172,7 @@ This task calculates and updates the SoC and SoH value using the coulomb countin
 Further reading about coulomb_counting can be found below.
 
 ### **task_charging**
-This task scans throught the slaves and if `modules[x] - min_volt > DELTA_VOLT`, send balancing message to the specific slave.
+This task scans through the slaves and if `modules[x] - min_volt > DELTA_VOLT`, send balancing message to the specific slave.
 
 ## **References**
 [Google Drive Link](https://drive.google.com/drive/u/0/folders/10BhgTpdeEc__XZ9EmfNQqM7rGZ7nbBgL)
