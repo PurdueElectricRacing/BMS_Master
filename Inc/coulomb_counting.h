@@ -8,7 +8,7 @@
 #ifndef COULOMB_COUNTING_H_
 #define COULOMB_COUNTING_H_
 
-#include "stm32f7xx_hal.h"
+#include "stm32f4xx_hal.h"
 #include "bms.h"
 #include "adc_isense.h"
 

@@ -276,13 +276,12 @@ void initBMSobject(flag_t mode) {
   }
   
   if (mode == DEASSERTED) {
-    periph.bmscan           = &hcan3;
-    //  periph.chargcan         = &hcan2; //todo fix this
+    periph.bmscan           = &hcan2;
     periph.chargcan         = NULL;
     periph.dcan             = &hcan1;
-    periph.hdma_sdmmc1_rx   = &hdma_sdmmc1_rx;
-    periph.hdma_sdmmc1_tx   = &hdma_sdmmc1_tx;
-    periph.hsd1             = &hsd1;
+    //periph.hdma_sdmmc1_rx   = &hdma_sdmmc1_rx;
+    //periph.hdma_sdmmc1_tx   = &hdma_sdmmc1_tx;
+    //periph.hsd1             = &hsd1;
     periph.i_adc            = &hadc1;
     periph.tim              = &htim1;
   }
@@ -300,13 +299,12 @@ void initBMSobject(flag_t mode) {
 *
 *     Parameters (list data type, name, and comment one per line):
 *       1.
-*
 *      Global Dependents:
 *       1. bms
 *
 *     Function Description: Main execution loop of the program. Will collect all
 *     processed information and send it out via can to main_bms. Will also have the
-*     ability to update paramaters on the fly
+*     ability to update parameters on the fly
 ***************************************************************************/
 void task_bms_main() {
   uint8_t i = 0;
@@ -352,7 +350,7 @@ void task_bms_main() {
         //TODO: kill all non critical tasks
         if (bms.fault.overall == NORMAL) {
           //Error has since corrected itself go back to normal operation
-          HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //open SDC
+          HAL_GPIO_WritePin(SDC_BMS_FAULT_GPIO_Port, SDC_BMS_FAULT_Pin, GPIO_PIN_RESET); //close SDC
           if (xSemaphoreTake(bms.state_sem, TIMEOUT) == pdPASS) {
             bms.state = NORMAL_OP;
             xSemaphoreGive(bms.state_sem); //release sem

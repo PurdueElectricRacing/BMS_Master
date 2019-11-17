@@ -51,7 +51,7 @@ CAN_HandleTypeDef hcan2;
 
 DAC_HandleTypeDef hdac;
 
-SD_HandleTypeDef hsd1;
+SD_HandleTypeDef hsd;
 
 TIM_HandleTypeDef htim1;
 
@@ -115,7 +115,6 @@ int main(void)
   MX_CAN2_Init();
   MX_SDIO_SD_Init();
   MX_DAC_Init();
-
   /* USER CODE BEGIN 2 */
   bms_can_filter_init(&hcan2);
   HAL_CAN_Start(&hcan2);
@@ -392,13 +391,13 @@ static void MX_SDIO_SD_Init(void)
   /* USER CODE BEGIN SDIO_Init 1 */
 
   /* USER CODE END SDIO_Init 1 */
-  hsd1.Instance = SDIO;
-  hsd1.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
-  hsd1.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
-  hsd1.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
-  hsd1.Init.BusWide = SDIO_BUS_WIDE_1B;
-  hsd1.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
-  hsd1.Init.ClockDiv = 0;
+  hsd.Instance = SDIO;
+  hsd.Init.ClockEdge = SDIO_CLOCK_EDGE_RISING;
+  hsd.Init.ClockBypass = SDIO_CLOCK_BYPASS_DISABLE;
+  hsd.Init.ClockPowerSave = SDIO_CLOCK_POWER_SAVE_DISABLE;
+  hsd.Init.BusWide = SDIO_BUS_WIDE_1B;
+  hsd.Init.HardwareFlowControl = SDIO_HARDWARE_FLOW_CONTROL_DISABLE;
+  hsd.Init.ClockDiv = 0;
   /* USER CODE BEGIN SDIO_Init 2 */
 
   /* USER CODE END SDIO_Init 2 */
@@ -543,12 +542,8 @@ static void MX_GPIO_Init(void)
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
-    
-    
-                 
   /* init code for FATFS */
   MX_FATFS_Init();
-
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
   for(;;)

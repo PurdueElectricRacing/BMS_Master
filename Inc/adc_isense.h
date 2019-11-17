@@ -8,8 +8,8 @@
 #ifndef ADC_ISENSE_H_
 #define ADC_ISENSE_H_
 
-#include "stm32f7xx_hal.h"
-#include "stm32f7xx_hal_adc.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_adc.h"
 #include "bms.h"
 
 #define ISENSE_CHANNEL_1_MAX                    75

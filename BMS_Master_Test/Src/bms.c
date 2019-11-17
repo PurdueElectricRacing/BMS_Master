@@ -281,7 +281,7 @@ void initBMSobject(flag_t mode) {
     periph.dcan             = &hcan1;
     //periph.hdma_sdmmc1_rx   = &hdma_sdmmc1_rx;
     //periph.hdma_sdmmc1_tx   = &hdma_sdmmc1_tx;
-    periph.hsd1             = &hsd1;
+    //periph.hsd1             = &hsd1;
     periph.i_adc            = &hadc1;
     periph.tim              = &htim1;
   }

@@ -1,9 +1,7 @@
-*
-!Inc/
-!Src/
-!Src/*
-!Inc/*
-!.gitignore
-!*.ioc
-!*.bat
-
+/Debug/**
+/Drivers/**
+/Middlewares/**
+.project
+.mxproject
+.cproject
+.settings/**

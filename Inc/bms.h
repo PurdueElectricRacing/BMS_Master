@@ -9,8 +9,8 @@
 #define BMS_H_
 
 #include "cmsis_os.h"
-#include "stm32f7xx_hal.h"
-#include "stm32f7xx_hal_can.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_can.h"
 #include "FreeRTOS.h"
 #include <string.h>
 #include <stdlib.h>
@@ -20,7 +20,6 @@
 #include "dcan.h"
 #include "adc_isense.h"
 #include "tim_fan_pwm.h"
-#include "sd_card.h"
 #include "charging.h"
 #include "coulomb_counting.h"
 

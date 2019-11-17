@@ -206,14 +206,13 @@ void task_broadcast() {
 ***************************************************************************/
 void dcan_filter_init(CAN_HandleTypeDef* hcan) {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_GUI_CMD << 5; //1
-  FilterConf.FilterIdLow =          ID_GUI_BMS_RESET << 5; //2
-  FilterConf.FilterMaskIdHigh =     ID_GUI_PARAM_SET << 5; //3
-  FilterConf.FilterMaskIdLow =      ID_GUI_PARAM_REQ << 5; //4
+  FilterConf.FilterIdHigh =         ID_GUI_CMD << 5;
+  FilterConf.FilterIdLow =          ID_GUI_BMS_RESET << 5;
+  FilterConf.FilterMaskIdHigh =     ID_GUI_PARAM_SET << 5;
+  FilterConf.FilterMaskIdLow =      ID_GUI_PARAM_REQ << 5;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
-  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
   FilterConf.FilterActivation = ENABLE;
   HAL_CAN_ConfigFilter(hcan, &FilterConf);
 }

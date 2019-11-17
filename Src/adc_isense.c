@@ -60,6 +60,7 @@ void task_getIsense() {
     // 100 came from 40(chn1 offset) * 2.5(mid point)
     current_value = adc_value * 5 * ISENSE_CHANNEL_1_SENSITIVITY * CURRENT_VALUE_OFFSET / ISENSE_MAX
                     - (float) ISENSE_CHANNEL_1_SENSITIVITY * 2.5 * CURRENT_VALUE_OFFSET;
+
     //update measured value
     bms.macros.pack_i.ch1_low_current = current_value;
 
@@ -81,9 +82,9 @@ void task_getIsense() {
         //discharging
         if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS)
         {
-            if (-current_value > bms.params.discharg_lim)
+        	// Check discharge over current fault
+        	if (-current_value > bms.params.discharg_lim)
             {
-                //set error flag
                 bms.fault.DOC = FAULTED;
             }
             else
@@ -98,9 +99,9 @@ void task_getIsense() {
         //charging
         if (xSemaphoreTake(bms.fault.sem, TIMEOUT) == pdPASS)
         {
-            if (current_value > bms.params.charg_lim)
+            // Check charge over current fault
+        	if (current_value > bms.params.charg_lim)
             {
-                //set error flag
                 bms.fault.COC = FAULTED;
             }
             else

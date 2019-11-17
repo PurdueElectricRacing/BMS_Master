@@ -43,7 +43,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx);
 *
 ***************************************************************************/
 void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
-  //filter 0
+  // Filter to bank 0
   CAN_FilterTypeDef FilterConf;
   FilterConf.FilterIdHigh =         ID_SLAVE_ACK << 5;
   FilterConf.FilterIdLow =          ID_SLAVE_FAULT << 5;
@@ -56,6 +56,7 @@ void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
   FilterConf.FilterActivation = ENABLE;
   HAL_CAN_ConfigFilter(hcan, &FilterConf);
   
+  // Filter to bank 1
   FilterConf.FilterIdHigh =         ID_SLAVE_TEMP << 5;
   FilterConf.FilterIdLow =          ID_SLAVE_VOLT << 5;
   FilterConf.FilterMaskIdHigh =     0;
@@ -250,7 +251,7 @@ void task_BmsCanProcess() {
 *       2. bms.fault
 *
 *     Function Description: takes the newest received data and updates the temp
-*     array accordingly and does safety checks accordingly
+*     array accordingly and does safety checks accordingly. This will take in 17 values
 ***************************************************************************/
 Success_t process_temp(CanRxMsgTypeDef* rx) {
   Success_t status = SUCCESSFUL;
@@ -292,7 +293,7 @@ Success_t process_temp(CanRxMsgTypeDef* rx) {
 *       2. bms.fault
 *
 *     Function Description: takes the newest received data and updates the volt
-*     array accordingly and does safety checks accordingly
+*     array accordingly and does safety checks accordingly. This will have 21 values
 ***************************************************************************/
 Success_t process_volt(CanRxMsgTypeDef* rx) {
   Success_t status = SUCCESSFUL;
@@ -304,6 +305,7 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   uint16_t volt3 = byte_combine((uint16_t) rx->Data[6], (uint16_t) rx->Data[7]);
   
   //update the table //todo check to make sure we don't go over array bounds...
+  //TODO: update this to have 21 values
   if (xSemaphoreTake(bms.vtaps.sem, TIMEOUT) == pdPASS) {
     bms.vtaps.data[slave][loc++] = volt1;
     bms.vtaps.data[slave][loc++] = volt2;
@@ -315,5 +317,3 @@ Success_t process_volt(CanRxMsgTypeDef* rx) {
   
   return status;
 }
-
-
