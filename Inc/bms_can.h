@@ -27,8 +27,8 @@
 #define ID_SLAVE_TEMP         0x643
 
 //rates
-#define CAN_TX_RATE 50 / portTICK_RATE_MS //send at 20Hz
-#define CAN_RX_RATE 50 / portTICK_RATE_MS //send at 20Hz
+#define CAN_TX_RATE 5 / portTICK_RATE_MS //send at 20Hz
+#define CAN_RX_RATE 5 / portTICK_RATE_MS //send at 20Hz
 #define WDAWG_RATE  1000 / portTICK_PERIOD_MS //every second check with one slave
 
 //Timeouts

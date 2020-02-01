@@ -61,8 +61,10 @@ void task_txDcan() {
       header.StdId = tx.StdId;
       header.TransmitGlobalTime = DISABLE;
       uint32_t mailbox;
+
       //send the message
-      while (!HAL_CAN_GetTxMailboxesFreeLevel(periph.dcan)); // while mailboxes not free
+      while (!HAL_CAN_GetTxMailboxesFreeLevel(periph.dcan));
+
       HAL_CAN_AddTxMessage(periph.dcan, &header, tx.Data, &mailbox);
     }
     vTaskDelayUntil(&time_init, DCAN_TX_RATE);
@@ -93,10 +95,10 @@ void task_DcanProcess() {
   TickType_t time_init = 0;
   while (1) {
     time_init = xTaskGetTickCount();
-    
+
     if (xQueuePeek(bms.q_rx_dcan, &rx_can, TIMEOUT) == pdTRUE) {
       xQueueReceive(bms.q_rx_dcan, &rx_can, TIMEOUT);
-      
+
       switch (rx_can.StdId) {
         case ID_GUI_CMD:
           process_gui_cmd(&rx_can);
@@ -115,7 +117,7 @@ void task_DcanProcess() {
           break;
       }
     }
-    
+
     vTaskDelayUntil(&time_init, DCAN_RX_RATE);
   }
 }
@@ -176,7 +178,7 @@ void task_broadcast() {
         }
       }
     }
-    
+
     i++;
     vTaskDelayUntil(&time_init, BROADCAST_RATE);
   }
@@ -206,10 +208,10 @@ void task_broadcast() {
 ***************************************************************************/
 void dcan_filter_init(CAN_HandleTypeDef* hcan) {
   CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         ID_GUI_CMD << 5;
-  FilterConf.FilterIdLow =          ID_GUI_BMS_RESET << 5;
-  FilterConf.FilterMaskIdHigh =     ID_GUI_PARAM_SET << 5;
-  FilterConf.FilterMaskIdLow =      ID_GUI_PARAM_REQ << 5;
+  FilterConf.FilterIdHigh =         0 << 5;
+  FilterConf.FilterIdLow =          0 << 5;
+  FilterConf.FilterMaskIdHigh =     0 << 5;
+  FilterConf.FilterMaskIdLow =      0 << 5;
   FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
   FilterConf.FilterBank = 0;
   FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
@@ -240,7 +242,7 @@ void dcan_filter_init(CAN_HandleTypeDef* hcan) {
 ***************************************************************************/
 Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
   Success_t status = SUCCESSFUL;
-  
+
   switch (rx_can->Data[0]) {
     case LOG_DATA:
       //TODO: raymond sd card read/send enable
@@ -270,7 +272,7 @@ Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
       //self explanatory what do you expect here
       break;
   }
-  
+
   return status;
 }
 
@@ -295,7 +297,7 @@ Success_t process_gui_cmd(CanRxMsgTypeDef* rx_can) {
 ***************************************************************************/
 Success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
   Success_t status = SUCCESSFUL;
-  
+
   if (xSemaphoreTake(bms.params.sem, TIMEOUT) == pdTRUE) {
     switch (rx_can->Data[0]) {
       case TEMP_HIGH_LIMIT:
@@ -339,7 +341,7 @@ Success_t process_gui_param_set(CanRxMsgTypeDef* rx_can) {
   } else {
     status = FAILURE;
   }
-  
+
   return status;
 }
 
@@ -429,7 +431,7 @@ Success_t process_gui_param_req(CanRxMsgTypeDef* rx_can) {
       msg.Data[2] = 0;
       break;
   }
-  
+
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
     status = FAILURE;
   }
@@ -464,7 +466,7 @@ Success_t send_ir_msg() {
 //[SOC_MSB, SOC_LSB, PACKVOLT_MSB, PACKVOLT_LSB, PACKI_MSB, PACKI_LSB, TEMP_MSB, TEMP_LSB]
 Success_t send_macro_msg() {
   Success_t status = SUCCESSFUL;
-  
+
   CanTxMsgTypeDef msg;
   msg.IDE = CAN_ID_STD;
   msg.RTR = CAN_RTR_DATA;
@@ -478,11 +480,11 @@ Success_t send_macro_msg() {
   msg.Data[5] = extract_LSB(bms.macros.pack_i.ch1_low_current);
   msg.Data[6] = extract_MSB(bms.macros.high_temp.val);
   msg.Data[7] = extract_LSB(bms.macros.high_temp.val);
-  
+
   if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
     status = FAILURE;
   }
-  
+
   return status;
 }
 
@@ -493,7 +495,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
   CanTxMsgTypeDef msg;
   msg.IDE = CAN_ID_STD;
   msg.RTR = CAN_RTR_DATA;
-  
+
   switch (msg_type) {
     case VOLT_MSG:
       for (i = 0; i < NUM_SLAVES; i++) {
@@ -518,7 +520,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
             msg.Data[6] = 0;
             msg.Data[7] = 0;
           }
-          
+
           if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
             status = FAILURE;
           }
@@ -548,7 +550,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
             msg.Data[6] = 0;
             msg.Data[7] = 0;
           }
-          
+
           if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
             status = FAILURE;
           }
@@ -578,7 +580,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
             msg.Data[6] = 0;
             msg.Data[7] = 0;
           }
-          
+
           if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
             status = FAILURE;
           }
@@ -608,7 +610,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
             msg.Data[6] = 0;
             msg.Data[7] = 0;
           }
-          
+
           if (xQueueSendToBack(bms.q_tx_dcan, &msg, 100) != pdPASS) {
             status = FAILURE;
           }
@@ -616,7 +618,7 @@ Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type) {
       }
       break;
   }
-  
+
   return status;
 }
 

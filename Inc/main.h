@@ -107,8 +107,8 @@ void Error_Handler(void);
 #define SDC_BMS_FAULT_GPIO_Port GPIOD
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
-#define BMSCAN_RC_Pin GPIO_PIN_5
-#define BMSCAN_RC_GPIO_Port GPIOB
+#define BMSCAN_RX_Pin GPIO_PIN_5
+#define BMSCAN_RX_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
