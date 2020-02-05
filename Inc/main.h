@@ -34,6 +34,7 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "bms_can.h"
 #include "dcan.h"
+#include "adc_isense.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -67,10 +68,6 @@ void Error_Handler(void);
 #define PH1_OSC_OUT_GPIO_Port GPIOH
 #define OTG_FS_PowerSwitchOn_Pin GPIO_PIN_0
 #define OTG_FS_PowerSwitchOn_GPIO_Port GPIOC
-#define ISENSE_1_Pin GPIO_PIN_0
-#define ISENSE_1_GPIO_Port GPIOA
-#define ISENSE_2_Pin GPIO_PIN_1
-#define ISENSE_2_GPIO_Port GPIOA
 #define POWER_LOSS_Pin GPIO_PIN_2
 #define POWER_LOSS_GPIO_Port GPIOA
 #define PACK_VOLT_Pin GPIO_PIN_4

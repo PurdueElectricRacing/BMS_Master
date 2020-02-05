@@ -43,26 +43,14 @@ Success_t process_volt(CanRxMsgTypeDef* rx);
  *
  ***************************************************************************/
 void bms_can_filter_init(CAN_HandleTypeDef* hcan) {
-	// Filter to bank 0
 	CAN_FilterTypeDef FilterConf;
-	FilterConf.FilterIdHigh = ID_SLAVE_ACK << 5;
-	FilterConf.FilterIdLow = ID_SLAVE_FAULT << 5;
-	FilterConf.FilterMaskIdHigh = ID_SLAVE_TEMP << 5;
-	FilterConf.FilterMaskIdLow = ID_SLAVE_VOLT << 5;
-	FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
-	FilterConf.FilterBank = 0;
-	FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
-	FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
-	FilterConf.FilterActivation = ENABLE;
-	HAL_CAN_ConfigFilter(hcan, &FilterConf);
+	FilterConf.FilterIdHigh = 0x000;
+	FilterConf.FilterIdLow = 0x000;
+	FilterConf.FilterMaskIdHigh = 0x000;
+	FilterConf.FilterMaskIdLow = 0x000;
 
-	// Filter to bank 1
-	FilterConf.FilterIdHigh = ID_SLAVE_TEMP << 5;
-	FilterConf.FilterIdLow = ID_SLAVE_VOLT << 5;
-	FilterConf.FilterMaskIdHigh = 0;
-	FilterConf.FilterMaskIdLow = 0;
-	FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
-	FilterConf.FilterBank = 1;
+	FilterConf.FilterFIFOAssignment = CAN_FilterFIFO1;
+	FilterConf.FilterBank = 14;
 	FilterConf.FilterMode = CAN_FILTERMODE_IDMASK;
 	FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
 	FilterConf.FilterActivation = ENABLE;
@@ -153,30 +141,31 @@ void task_Slave_WDawg() {
  *
  ***************************************************************************/
 void task_txBmsCan() {
-  CanTxMsgTypeDef tx;
-  TickType_t time_init = 0;
-  while (1) {
-    time_init = xTaskGetTickCount();
-    //check if this task is triggered
-    if (xQueuePeek(bms.q_tx_bmscan, &tx, TIMEOUT) == pdTRUE) {
-      xQueueReceive(bms.q_tx_bmscan, &tx, TIMEOUT);  //actually take item out of queue
-      CAN_TxHeaderTypeDef header;
-      header.DLC = tx.DLC;
-      header.IDE = tx.IDE;
-      header.RTR = tx.RTR;
-      header.StdId = tx.StdId;
-      header.TransmitGlobalTime = DISABLE;
-      uint32_t mailbox;
+	CanTxMsgTypeDef tx;
+	TickType_t time_init = 0;
+	while (1) {
+		time_init = xTaskGetTickCount();
+		//check if this task is triggered
+		if (xQueuePeek(bms.q_tx_bmscan, &tx, TIMEOUT) == pdTRUE) {
+			xQueueReceive(bms.q_tx_bmscan, &tx, TIMEOUT); //actually take item out of queue
+			CAN_TxHeaderTypeDef header;
+			header.DLC = tx.DLC;
+			header.IDE = tx.IDE;
+			header.RTR = tx.RTR;
+			header.StdId = tx.StdId;
+			header.TransmitGlobalTime = DISABLE;
+			uint32_t mailbox;
 
-      //send the message
+			// while mailboxes not free
+			while (!HAL_CAN_GetTxMailboxesFreeLevel(periph.bmscan))
+			{
+			}
 
-      while (!HAL_CAN_GetTxMailboxesFreeLevel(periph.bmscan));
-
-      // while mailboxes not free
-      HAL_CAN_AddTxMessage(periph.bmscan, &header, tx.Data, &mailbox);
-    }
-    vTaskDelayUntil(&time_init, CAN_TX_RATE);
-  }
+			//send the message
+			HAL_CAN_AddTxMessage(periph.bmscan, &header, tx.Data, &mailbox);
+		}
+		vTaskDelayUntil(&time_init, CAN_TX_RATE);
+	}
 }
 
 /***************************************************************************

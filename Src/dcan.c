@@ -26,6 +26,85 @@ Success_t send_ir_msg();
 Success_t send_macro_msg();
 Success_t send_generic_msg(uint16_t items, dcan_broadcast_t msg_type);
 
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: can_filter_init
+*
+*     Programmer's Name: Matt Flanagan
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. CAN_HandleTypeDef* hcan        Can Handle
+*
+*      Global Dependents:
+*       1. None
+*
+*     Function Description: Sets the can filter to only take Messages from BMS master.
+*     Only uses FIFO0. If more messages need to be read change FilterMaskIdHigh
+*     and FilterMaskIdLow.
+*
+***************************************************************************/
+void dcan_filter_init(CAN_HandleTypeDef* hcan) {
+	CAN_FilterTypeDef FilterConf;
+		  FilterConf.FilterIdHigh =         ID_GUI_CMD << 5;
+		  FilterConf.FilterIdLow =          ID_GUI_PARAM_SET << 5;
+		  FilterConf.FilterMaskIdHigh =     ID_GUI_BMS_RESET << 5;
+		  FilterConf.FilterMaskIdLow =      ID_GUI_PARAM_REQ << 5;
+
+		  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
+		  FilterConf.FilterBank = 0;
+		  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
+		  FilterConf.FilterScale = CAN_FILTERSCALE_16BIT;
+		  FilterConf.FilterActivation = ENABLE;
+		  HAL_CAN_ConfigFilter(hcan, &FilterConf);
+}
+
+/***************************************************************************
+*
+*     Function Information
+*
+*     Name of Function: HAL_CAN_RxFifo0MsgPendingCallback
+*
+*     Programmer's Name: Ben Ng
+*
+*     Function Return Type: None
+*
+*     Parameters (list data type, name, and comment one per line):
+*       1. None
+*
+*      Global Dependents:
+*       1. Can queue and such
+*
+*     Function Description:	Called by HAL_CAN_IQRHandler when CAN messages are received
+*
+*
+***************************************************************************/
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 0, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(bms.q_rx_dcan, &rx, NULL);
+}
+
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	CanRxMsgTypeDef rx;
+	CAN_RxHeaderTypeDef header;
+	HAL_CAN_GetRxMessage(hcan, 1, &header, rx.Data);
+	rx.DLC = header.DLC;
+	rx.StdId = header.StdId;
+	xQueueSendFromISR(bms.q_rx_bmscan, &rx, NULL);
+}
+
 /***************************************************************************
 *
 *     Function Information
@@ -184,40 +263,6 @@ void task_broadcast() {
   }
 }
 
-
-/***************************************************************************
-*
-*     Function Information
-*
-*     Name of Function: can_filter_init
-*
-*     Programmer's Name: Matt Flanagan
-*
-*     Function Return Type: None
-*
-*     Parameters (list data type, name, and comment one per line):
-*       1. CAN_HandleTypeDef* hcan        Can Handle
-*
-*      Global Dependents:
-*       1. None
-*
-*     Function Description: Sets the can filter to only take Messages from BMS master.
-*     Only uses FIFO0. If more messages need to be read change FilterMaskIdHigh
-*     and FilterMaskIdLow.
-*
-***************************************************************************/
-void dcan_filter_init(CAN_HandleTypeDef* hcan) {
-  CAN_FilterTypeDef FilterConf;
-  FilterConf.FilterIdHigh =         0 << 5;
-  FilterConf.FilterIdLow =          0 << 5;
-  FilterConf.FilterMaskIdHigh =     0 << 5;
-  FilterConf.FilterMaskIdLow =      0 << 5;
-  FilterConf.FilterFIFOAssignment = CAN_FilterFIFO0;
-  FilterConf.FilterBank = 0;
-  FilterConf.FilterMode = CAN_FILTERMODE_IDLIST;
-  FilterConf.FilterActivation = ENABLE;
-  HAL_CAN_ConfigFilter(hcan, &FilterConf);
-}
 
 /***************************************************************************
 *

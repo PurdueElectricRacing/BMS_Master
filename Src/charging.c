@@ -7,8 +7,6 @@
 
 #include "charging.h"
 
-void calc_avg_voltage(uint16_t* modules, uint16_t* min_mod);
-void write_passive_msg(uint8_t slave_id, flag_t passive_bal);
 
 void task_charging() {
   TickType_t time_init = 0;
@@ -22,7 +20,7 @@ void task_charging() {
     if (bms.params.passive_en == ASSERTED) {
       //passive balancing enabled
       //calculate average voltage of each modules
-      calc_avg_voltage(&modules, &min_volt);
+      calc_avg_voltage(modules, &min_volt);
       //check if delta greater than DELTA Volts
       for (x = 0; x < NUM_SLAVES; x++) {
         //not the min module check the delta
@@ -109,7 +107,7 @@ void calc_avg_voltage(uint16_t* modules, uint16_t* min_mod) {
 *
 *     Function Description: sends a can message to enable/disable the passive balancing
 ***************************************************************************/
-void write_passive_msg(uint8_t slave_id, flag_t passive_bal) {
+void write_passive_msg(uint8_t slave_id, uint8_t passive_bal) {
   CanTxMsgTypeDef msg;
   msg.IDE = CAN_ID_STD;
   msg.RTR = CAN_RTR_DATA;

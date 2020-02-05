@@ -20,7 +20,7 @@
 #define CURRENT_VALUE_OFFSET                    10
 #define ISENSE_HYSTERESIS                       5
 
-void task_getIsense();
+void currentSenseTask();
 void master_adc_isense_start(ADC_HandleTypeDef* hadc);
 void master_adc_isense_stop(ADC_HandleTypeDef* hadc);
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);

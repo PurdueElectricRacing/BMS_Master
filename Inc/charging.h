@@ -20,5 +20,7 @@
 
 //Function Prototypes
 void task_charging();
+void calc_avg_voltage(uint16_t* modules, uint16_t* min_mod);
+void write_passive_msg(uint8_t slave_id, uint8_t passive_bal);
 
 #endif /* CHARGING_H_ */
