@@ -142,8 +142,8 @@ void initRTOSObjects() {
 
 	//start tasks
 
-	xTaskCreate(task_Slave_WDawg, "Master WDawg", WDAWG_STACK_SIZE, NULL,
-			WDAWG_PRIORITY, NULL);
+//	xTaskCreate(task_Slave_WDawg, "Master WDawg", WDAWG_STACK_SIZE, NULL,
+//			WDAWG_PRIORITY, NULL);
 
 	xTaskCreate(task_txBmsCan, "Transmit BmsCan", BMSCAN_TX_STACK_SIZE, NULL,
 			BMSCAN_TX_PRIORITY, NULL);
@@ -160,29 +160,29 @@ void initRTOSObjects() {
 	xTaskCreate(task_bms_main, "Main Task", BMS_MAIN_STACK_SIZE, NULL,
 	BMS_MAIN_PRIORITY, NULL);
 
-	xTaskCreate(task_heartbeat, "Heartbeat", HEARTBEAT_STACK_SIZE, NULL,
-			HEARTBEAT_PRIORITY, NULL);
+//	xTaskCreate(task_heartbeat, "Heartbeat", HEARTBEAT_STACK_SIZE, NULL,
+//			HEARTBEAT_PRIORITY, NULL);
 
 	xTaskCreate(task_broadcast, "Broadcasting Info on DCAN",
 			BROADCAST_STACK_SIZE, NULL,
 			BROADCAST_PRIORITY, bms.normal_op_tasks[i++]);
 
-	xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
-			ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
+//	xTaskCreate(task_error_check, "Error Check", ERROR_CHECK_STACK_SIZE, NULL,
+//			ERROR_CHECK_RATE_PRIORITY, bms.normal_op_tasks[i++]);
 
 //	xTaskCreate(task_sd_card, "SD Card", 128, NULL, 1, NULL);
 
-	xTaskCreate(currentSenseTask, "ADC Current Sense", ADC_STACK_SIZE * 5, NULL,
-			ADC_PRIORITY, NULL);
+//	xTaskCreate(currentSenseTask, "ADC Current Sense", ADC_STACK_SIZE * 5, NULL,
+//			ADC_PRIORITY, NULL);
 
-	xTaskCreate(task_fan_PWM, "Fan PWM", FAN_STACK_SIZE, NULL, FAN_PRIORITY,
-			NULL);
+//	xTaskCreate(task_fan_PWM, "Fan PWM", FAN_STACK_SIZE, NULL, FAN_PRIORITY,
+//			NULL);
 
-	xTaskCreate(task_coulomb_counting, "Coulomb Counting", COULOMB_STACK_SIZE,
-			NULL, COULOMB_PRIORITY, NULL);
-
-	xTaskCreate(task_charging, "Charging", CHARG_STACK_SIZE, NULL,
-			CHARG_PRIORITY, NULL);
+//	xTaskCreate(task_coulomb_counting, "Coulomb Counting", COULOMB_STACK_SIZE,
+//			NULL, COULOMB_PRIORITY, NULL);
+//
+//	xTaskCreate(task_charging, "Charging", CHARG_STACK_SIZE, NULL,
+//			CHARG_PRIORITY, NULL);
 }
 
 /***************************************************************************
